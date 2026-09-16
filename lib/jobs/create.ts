@@ -3,7 +3,7 @@ import "server-only";
 import { after } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { spendCredits } from "@/lib/credits";
+import { refundCredits, spendCredits } from "@/lib/credits";
 import { getProvider } from "@/lib/generation-engine";
 import type { AuthContext } from "@/lib/auth";
 import type { GenerationType } from "@/types";
@@ -122,6 +122,30 @@ export async function createGenerationJob(
     .single();
 
   if (jobError || !job) {
+    // Credits are already spent but no job exists, so the sweep would never
+    // recover this. Refund immediately rather than charging for nothing.
+    await refundCredits({
+      userId: auth.user.id,
+      amount: params.creditCost,
+      generationId: generation.id,
+      description: "Refund — generation could not be queued",
+    });
+
+    await admin
+      .from("generations")
+      .update({
+        status: "FAILED",
+        error_message:
+          "We couldn't start that generation. Your credits have been refunded.",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", generation.id);
+
+    await admin
+      .from("prompt_history")
+      .update({ status: "FAILED" })
+      .eq("generation_id", generation.id);
+
     throw new Error(`Failed to queue job: ${jobError?.message}`);
   }
 

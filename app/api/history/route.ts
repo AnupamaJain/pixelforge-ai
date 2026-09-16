@@ -29,9 +29,11 @@ export async function GET(request: NextRequest) {
     if (query.styleId) builder = builder.eq("style_id", query.styleId);
 
     if (query.search) {
-      // Escape the LIKE wildcards a user could otherwise inject.
-      const escaped = query.search.replace(/[%_\\]/g, (match) => `\\${match}`);
-      builder = builder.ilike("prompt", `%${escaped}%`);
+      // Strip LIKE wildcards rather than escaping them: backslash escapes are
+      // not reliably preserved through PostgREST, and a literal search is what
+      // users expect from a search box.
+      const literal = query.search.replace(/[%_\\]/g, " ").trim();
+      if (literal) builder = builder.ilike("prompt", `%${literal}%`);
     }
 
     const { data, error } = await builder;

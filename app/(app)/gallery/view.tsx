@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Heart, Images } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -198,9 +199,9 @@ export function GalleryView() {
               : "Images you generate will be collected here automatically."
           }
           action={
-            <Button onClick={() => (window.location.href = "/generate")}>
-              Generate an image
-            </Button>
+            <Link href="/generate">
+              <Button>Generate an image</Button>
+            </Link>
           }
         />
       ) : (
