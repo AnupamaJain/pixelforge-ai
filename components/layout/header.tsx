@@ -15,7 +15,7 @@ import { Logo } from "@/components/brand";
 
 export function Header({ email }: { email: string }) {
   const router = useRouter();
-  const { credits, isPro } = useCredits();
+  const { credits, isPaid, planName } = useCredits();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
@@ -61,13 +61,13 @@ export function Header({ email }: { email: string }) {
           <span className="hidden text-fg-muted sm:inline">credits remaining</span>
         </Link>
 
-        {!isPro ? (
+        {!isPaid ? (
           <Link href="/pricing">
             <Button size="sm">Upgrade</Button>
           </Link>
         ) : (
           <Badge variant="accent" className="hidden sm:inline-flex">
-            Pro
+            {planName}
           </Badge>
         )}
 
@@ -100,7 +100,7 @@ export function Header({ email }: { email: string }) {
               <div className="border-b border-border px-3 py-2.5">
                 <p className="truncate text-[13px] font-medium">{email}</p>
                 <p className="text-xs text-fg-subtle">
-                  {isPro ? "Pro plan" : "Free plan"}
+                  {planName} plan
                 </p>
               </div>
 

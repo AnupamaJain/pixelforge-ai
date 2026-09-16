@@ -37,8 +37,14 @@ export interface CreateJobResult {
   creditsRemaining: number;
 }
 
+/** Skips the inline `after()` kick — batch runs schedule their own processing. */
+export interface CreateJobOptions {
+  deferProcessing?: boolean;
+}
+
 export async function createGenerationJob(
   params: CreateJobParams,
+  options: CreateJobOptions = {},
 ): Promise<CreateJobResult> {
   const admin = createAdminClient();
   const provider = getProvider();
@@ -68,6 +74,10 @@ export async function createGenerationJob(
       credit_cost: params.creditCost,
       source_image_path: engineInput.sourcePath ?? null,
       parent_generation_id: params.parentGenerationId ?? null,
+      brand_kit_id: engineInput.brandKitId ?? null,
+      client_id: engineInput.clientId ?? null,
+      scene_id: engineInput.sceneId ?? null,
+      batch_item_id: engineInput.batchItemId ?? null,
     })
     .select("id")
     .single();
@@ -115,7 +125,7 @@ export async function createGenerationJob(
       status: "QUEUED",
       provider: provider.id,
       // Pro plans jump the queue where the engine supports it.
-      priority: auth.planId === "PRO" ? 10 : 0,
+      priority: auth.plan.features.priorityQueue ? 10 : 0,
       input: engineInput,
     })
     .select("id")
@@ -152,6 +162,10 @@ export async function createGenerationJob(
   // Runs after the response is flushed, so the client isn't held open for the
   // duration of the model run. sweepStuckJobs() is the backstop if this
   // instance dies before finishing.
+  if (options.deferProcessing) {
+    return { generationId: generation.id, jobId: job.id, creditsRemaining };
+  }
+
   after(async () => {
     try {
       await processJob(job.id);
@@ -170,8 +184,14 @@ export async function createGenerationJob(
   };
 }
 
+const SPEND_NOUN: Record<string, string> = {
+  TEXT_TO_IMAGE: "text-to-image",
+  IMAGE_TO_IMAGE: "image-to-image",
+  PRODUCT_SCENE: "product scene",
+};
+
 function describeSpend(type: GenerationType, input: JobInput): string {
   if (type === "UPSCALE") return `${input.upscaleFactor ?? 2}× upscale`;
-  const noun = type === "TEXT_TO_IMAGE" ? "text-to-image" : "image-to-image";
+  const noun = SPEND_NOUN[type] ?? "generation";
   return `${input.imageCount} × ${noun} (${input.width}×${input.height})`;
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
-import type { PlanId } from "@/config/plans";
+import { getPlan, type PlanFeatures, type PlanId } from "@/config/plans";
 
 interface CreditsContextValue {
   credits: number;
   plan: PlanId;
-  isPro: boolean;
+  planName: string;
+  /** Display-only mirror of the server's plan features. Never authoritative. */
+  features: PlanFeatures;
+  isPaid: boolean;
   /** Optimistically set the balance after a server response reports it. */
   setCredits: (credits: number) => void;
   /** Re-reads the authoritative balance from the server. */
@@ -50,10 +53,18 @@ export function CreditsProvider({
     }
   }, []);
 
-  const value = React.useMemo(
-    () => ({ credits, plan, isPro: plan === "PRO", setCredits, refresh }),
-    [credits, plan, refresh],
-  );
+  const value = React.useMemo(() => {
+    const resolved = getPlan(plan);
+    return {
+      credits,
+      plan,
+      planName: resolved.name,
+      features: resolved.features,
+      isPaid: plan !== "FREE",
+      setCredits,
+      refresh,
+    };
+  }, [credits, plan, refresh]);
 
   return (
     <CreditsContext.Provider value={value}>{children}</CreditsContext.Provider>

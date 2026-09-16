@@ -23,6 +23,7 @@ export interface GalleryItem {
 const TYPE_LABEL: Record<GenerationType, string> = {
   TEXT_TO_IMAGE: "Text to image",
   IMAGE_TO_IMAGE: "Image to image",
+  PRODUCT_SCENE: "Product scene",
   UPSCALE: "Upscale",
 };
 

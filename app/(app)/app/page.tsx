@@ -4,8 +4,8 @@ import {
   Coins,
   Heart,
   Images,
-  Layers,
-  Maximize2,
+  Package,
+  Rows3,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
@@ -22,10 +22,10 @@ import { formatNumber, formatRelativeTime } from "@/lib/utils";
 export const metadata: Metadata = { title: "Dashboard" };
 
 const QUICK_ACTIONS = [
-  { href: "/generate", label: "Generate Image", Icon: Sparkles, pro: false },
-  { href: "/image-to-image", label: "Image to Image", Icon: Layers, pro: true },
-  { href: "/upscale", label: "Upscale", Icon: Maximize2, pro: true },
-  { href: "/gallery", label: "View Gallery", Icon: Images, pro: false },
+  { href: "/product-studio", label: "Product Studio", Icon: Package, feature: "productScenes" },
+  { href: "/generate", label: "Generate Image", Icon: Sparkles, feature: null },
+  { href: "/batch", label: "Batch Run", Icon: Rows3, feature: "batchGeneration" },
+  { href: "/gallery", label: "View Gallery", Icon: Images, feature: null },
 ] as const;
 
 function StatCard({
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
             Here&apos;s where your workspace stands today.
           </p>
         </div>
-        <Badge variant={auth.planId === "PRO" ? "accent" : "outline"}>
+        <Badge variant={auth.planId === "FREE" ? "outline" : "accent"}>
           {auth.plan.name} plan
         </Badge>
       </div>
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
       <section className="mt-8">
         <h2 className="text-sm font-semibold">Quick actions</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {QUICK_ACTIONS.map(({ href, label, Icon, pro }) => (
+          {QUICK_ACTIONS.map(({ href, label, Icon, feature }) => (
             <Link
               key={href}
               href={href}
@@ -156,8 +156,8 @@ export default async function DashboardPage() {
                 <span className="block truncate text-[13px] font-medium">
                   {label}
                 </span>
-                {pro && auth.planId !== "PRO" ? (
-                  <span className="text-xs text-fg-subtle">Pro feature</span>
+                {feature && !auth.plan.features[feature] ? (
+                  <span className="text-xs text-fg-subtle">Upgrade to unlock</span>
                 ) : null}
               </span>
             </Link>

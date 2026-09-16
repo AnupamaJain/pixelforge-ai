@@ -49,6 +49,47 @@ export interface ImageToImageParams extends TextToImageParams {
   strength: number;
 }
 
+/** Cut a product out of its background, returning RGBA with a real alpha channel. */
+export interface SegmentParams {
+  image: Buffer;
+  imageContentType: string;
+  signal?: AbortSignal;
+}
+
+export interface SegmentResult {
+  /** RGBA PNG. Transparent everywhere except the product. */
+  cutout: Buffer;
+  width: number;
+  height: number;
+}
+
+/**
+ * Scene generation for the product pipeline.
+ *
+ * The provider generates the *environment*. It never draws the product — the
+ * original product pixels are composited back afterwards, which is what makes
+ * the pixel-identical guarantee hold.
+ */
+export interface SceneParams {
+  prompt: string;
+  negativePrompt?: string;
+  width: number;
+  height: number;
+  imageCount: number;
+  seed?: number | null;
+  steps?: number;
+  guidance?: number;
+  /**
+   * Composite of the product over a neutral canvas, plus a mask marking the
+   * region the model may paint. Supplying both lets the engine inpaint around
+   * the product so lighting and shadow agree with it.
+   */
+  baseImage?: Buffer;
+  /** White = repaint, black = preserve. */
+  maskImage?: Buffer;
+  signal?: AbortSignal;
+}
+
 export interface UpscaleParams {
   image: Buffer;
   imageContentType: string;
@@ -62,6 +103,8 @@ export interface ProviderCapabilities {
   textToImage: boolean;
   imageToImage: boolean;
   upscale: boolean;
+  /** Product-scene pipeline: background removal plus scene inpainting. */
+  productScenes: boolean;
   /** Expose the steps slider only when the engine honours it. */
   supportsSteps: boolean;
   supportsGuidance: boolean;
@@ -80,6 +123,13 @@ export interface ImageGenerationProvider {
   generateTextToImage(params: TextToImageParams): Promise<GenerationResult>;
   generateImageToImage(params: ImageToImageParams): Promise<GenerationResult>;
   upscale(params: UpscaleParams): Promise<GenerationResult>;
+
+  /**
+   * Optional product-pipeline capability. Providers that cannot segment or
+   * inpaint simply omit these and report productScenes: false.
+   */
+  removeBackground?(params: SegmentParams): Promise<SegmentResult>;
+  generateScene?(params: SceneParams): Promise<GenerationResult>;
 
   /** Cheap reachability probe used by the health endpoint and setup docs. */
   healthCheck(): Promise<{ ok: boolean; detail?: string }>;

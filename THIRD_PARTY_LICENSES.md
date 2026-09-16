@@ -104,6 +104,36 @@ distributing weights at all, and the provider's terms govern.
 
 ---
 
+## 3a. Stock photography on the marketing page
+
+The images in `/public/showcase` are photographs from
+[Unsplash](https://unsplash.com), used under the
+[Unsplash License](https://unsplash.com/license): free for commercial use, no
+permission or attribution required.
+
+**They are placeholders, not output from this application.** While
+`NEXT_PUBLIC_SHOWCASE_PLACEHOLDER` is anything other than `false`, the landing
+page renders a "Sample imagery" disclosure beneath them. Replace them with your
+own generations before launch and set that flag to `false`.
+
+Presenting stock photography as your product's output would be a false
+advertising claim in most jurisdictions, quite apart from the trust cost.
+
+## 3b. Testimonials
+
+`config/testimonials.ts` ships **placeholders only**, filtered out of production
+builds by default.
+
+Publishing fabricated testimonials or reviews is unlawful under:
+
+- **US** — FTC Rule on Consumer Reviews and Testimonials, 16 CFR Part 465,
+  effective October 2024, with civil penalties per violation.
+- **UK** — Digital Markets, Competition and Consumers Act 2024.
+- **EU** — Unfair Commercial Practices Directive, Annex I.
+
+Only publish quotes you actually received, with written permission, and record
+the consent date on the entry.
+
 ## 4. Application dependencies
 
 All are permissively licensed (MIT unless noted):

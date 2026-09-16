@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 
 import { Wordmark } from "@/components/brand";
+import type { PlanFeatures } from "@/config/plans";
 import { cn } from "@/lib/utils";
 import { PRIMARY_NAV, SECONDARY_NAV } from "./nav-config";
 
-export function Sidebar({ isPro }: { isPro: boolean }) {
+export function Sidebar({ features }: { features: PlanFeatures }) {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -25,7 +26,8 @@ export function Sidebar({ isPro }: { isPro: boolean }) {
 
       <nav aria-label="Workspace" className="flex flex-1 flex-col gap-1 p-3">
         {PRIMARY_NAV.map(({ href, label, Icon, ...rest }) => {
-          const locked = "proOnly" in rest && rest.proOnly && !isPro;
+          const locked =
+            "feature" in rest && rest.feature ? !features[rest.feature] : false;
           return (
             <Link
               key={href}

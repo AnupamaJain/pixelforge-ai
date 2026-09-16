@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpRight, Check, ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
-import { PLANS, formatPrice } from "@/config/plans";
+import { formatPrice, planRank } from "@/config/plans";
 import { formatDateTime, formatNumber, formatRelativeTime } from "@/lib/utils";
 import type { CreditTransactionType } from "@/types";
 import type { PlanId } from "@/config/plans";
@@ -39,12 +39,20 @@ const TX_LABEL: Record<CreditTransactionType, string> = {
   ADMIN_ADJUSTMENT: "Adjustment",
 };
 
+interface PlanSummary {
+  id: PlanId;
+  name: string;
+  audience: string;
+  priceCents: number;
+  monthlyCredits: number;
+  highlights: string[];
+}
+
 export function BillingView({
   planId,
   planName,
   monthlyCredits,
-  proCredits,
-  proPriceCents,
+  catalogue,
   credits,
   lifetimeGranted,
   lifetimeSpent,
@@ -55,8 +63,7 @@ export function BillingView({
   planId: PlanId;
   planName: string;
   monthlyCredits: number;
-  proCredits: number;
-  proPriceCents: number;
+  catalogue: PlanSummary[];
   credits: number;
   lifetimeGranted: number;
   lifetimeSpent: number;
@@ -69,7 +76,7 @@ export function BillingView({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState<"checkout" | "portal" | null>(null);
 
-  const isPro = planId === "PRO";
+  const isPaid = planId !== "FREE";
   const notified = React.useRef(false);
 
   // Stripe redirects back here after checkout; the webhook does the real work,
@@ -78,16 +85,20 @@ export function BillingView({
     if (notified.current) return;
     if (searchParams.get("checkout") === "success") {
       notified.current = true;
-      toast("Welcome to Pro! Your credits are on the way.", "success");
+      toast("You\u2019re upgraded. Your credits are on the way.", "success");
       const timer = setTimeout(() => router.refresh(), 2000);
       return () => clearTimeout(timer);
     }
   }, [searchParams, toast, router]);
 
-  async function startCheckout() {
+  async function startCheckout(plan: PlanId) {
     setLoading("checkout");
     try {
-      const response = await fetch("/api/stripe/create-checkout", { method: "POST" });
+      const response = await fetch("/api/stripe/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
       const data = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !data.url) throw new Error(data.error ?? "Checkout failed.");
       window.location.href = data.url;
@@ -147,12 +158,10 @@ export function BillingView({
             <div>
               <CardTitle>Current plan</CardTitle>
               <p className="mt-1 text-sm text-fg-muted">
-                {isPro
-                  ? `${formatPrice(proPriceCents)} per month · ${formatNumber(proCredits)} credits`
-                  : `Free · ${formatNumber(monthlyCredits)} credits per month`}
+                {formatNumber(monthlyCredits)} credits per month
               </p>
             </div>
-            <Badge variant={isPro ? "accent" : "outline"}>{planName}</Badge>
+            <Badge variant={isPaid ? "accent" : "outline"}>{planName}</Badge>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -164,42 +173,48 @@ export function BillingView({
               </p>
             ) : null}
 
-            <div className="flex flex-wrap gap-2">
-              {isPro ? (
-                <Button
-                  variant="secondary"
-                  loading={loading === "portal"}
-                  disabled={!stripeConfigured}
-                  onClick={openPortal}
-                >
-                  <ExternalLink aria-hidden="true" />
-                  Manage subscription
-                </Button>
-              ) : (
-                <Button
-                  loading={loading === "checkout"}
-                  disabled={!stripeConfigured}
-                  onClick={startCheckout}
-                >
-                  <ArrowUpRight aria-hidden="true" />
-                  Upgrade to Pro — {formatPrice(proPriceCents)}/mo
-                </Button>
-              )}
-            </div>
-
-            {!isPro ? (
-              <ul className="space-y-2 border-t border-border pt-4">
-                {PLANS.PRO.highlights.map((highlight) => (
-                  <li key={highlight} className="flex items-start gap-2.5 text-sm">
-                    <Check
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-accent"
-                    />
-                    <span className="text-fg-muted">{highlight}</span>
-                  </li>
-                ))}
-              </ul>
+            {isPaid ? (
+              <Button
+                variant="secondary"
+                loading={loading === "portal"}
+                disabled={!stripeConfigured}
+                onClick={openPortal}
+              >
+                <ExternalLink aria-hidden="true" />
+                Manage subscription
+              </Button>
             ) : null}
+
+            <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-3">
+              {catalogue
+                .filter((tier) => planRank(tier.id) > planRank(planId))
+                .map((tier) => (
+                  <div
+                    key={tier.id}
+                    className="rounded-[--radius-md] border border-border p-3.5"
+                  >
+                    <p className="text-[13px] font-semibold">{tier.name}</p>
+                    <p className="text-xs text-fg-subtle">{tier.audience}</p>
+                    <p className="mt-2 text-lg font-semibold tabular-nums">
+                      {formatPrice(tier.priceCents)}
+                      <span className="text-xs font-normal text-fg-subtle">/mo</span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-fg-muted">
+                      {formatNumber(tier.monthlyCredits)} credits
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-3 w-full"
+                      loading={loading === "checkout"}
+                      disabled={!stripeConfigured}
+                      onClick={() => startCheckout(tier.id)}
+                    >
+                      <ArrowUpRight aria-hidden="true" />
+                      Upgrade
+                    </Button>
+                  </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
 

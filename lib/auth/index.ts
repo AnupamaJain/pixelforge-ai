@@ -2,7 +2,14 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPlan, type Plan, type PlanId } from "@/config/plans";
+import {
+  getPlan,
+  isPlanId,
+  planRank,
+  type Plan,
+  type PlanFeatures,
+  type PlanId,
+} from "@/config/plans";
 import type { User } from "@supabase/supabase-js";
 
 export interface AuthContext {
@@ -10,6 +17,8 @@ export interface AuthContext {
   plan: Plan;
   planId: PlanId;
   credits: number;
+  /** Active client workspace, for agency accounts. Null = personal workspace. */
+  clientId: string | null;
 }
 
 /** Returns the signed-in user, or null. Never throws. */
@@ -20,6 +29,8 @@ export async function getUser(): Promise<User | null> {
   } = await supabase.auth.getUser();
   return user ?? null;
 }
+
+const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 /**
  * Resolves the caller's identity, plan and balance from the database.
@@ -47,18 +58,22 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   ]);
 
   const subscription = subscriptionResult.data;
-  const activeStatuses = ["active", "trialing"];
-  const isActivePro =
-    subscription?.plan === "PRO" &&
-    activeStatuses.includes(subscription?.status ?? "");
 
-  const planId: PlanId = isActivePro ? "PRO" : "FREE";
+  // A lapsed subscription silently falls back to Free — we never grant paid
+  // capability off a stale row.
+  const planId: PlanId =
+    subscription &&
+    isPlanId(subscription.plan) &&
+    ACTIVE_STATUSES.has(subscription.status ?? "")
+      ? subscription.plan
+      : "FREE";
 
   return {
     user,
     planId,
     plan: getPlan(planId),
     credits: balanceResult.data?.balance ?? 0,
+    clientId: null,
   };
 }
 
@@ -77,7 +92,15 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/** Server-side source of truth for Pro gating. */
-export function isProUser(context: AuthContext): boolean {
-  return context.planId === "PRO";
+/** Server-side source of truth for any paid capability. */
+export function hasFeature(
+  context: AuthContext,
+  feature: keyof PlanFeatures,
+): boolean {
+  return context.plan.features[feature];
+}
+
+/** True for any paying tier. Prefer hasFeature() for gating specific capability. */
+export function isPaidUser(context: AuthContext): boolean {
+  return planRank(context.planId) > 0;
 }

@@ -1,26 +1,30 @@
 import {
+  Capabilities,
   Faq,
   FinalCta,
   GallerySection,
   Hero,
   HowItWorks,
-  ImageToImage,
+  MarketplaceExport,
+  PixelIdentical,
+  Playground,
   PricingSection,
-  StylePresetsSection,
-  TextToImage,
-  Upscaling,
+  Scenes,
 } from "@/components/marketing/sections";
+import { Testimonials } from "@/components/marketing/testimonials";
 
 export default function LandingPage() {
   return (
     <>
       <Hero />
-      <TextToImage />
-      <ImageToImage />
-      <Upscaling />
-      <StylePresetsSection />
+      <PixelIdentical />
+      <Playground />
+      <Scenes />
+      <Capabilities />
+      <MarketplaceExport />
       <GallerySection />
       <HowItWorks />
+      <Testimonials />
       <PricingSection />
       <Faq />
       <FinalCta />

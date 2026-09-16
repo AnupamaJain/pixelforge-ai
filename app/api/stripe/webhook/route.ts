@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 
-import { PLANS } from "@/config/plans";
+import { PLANS, isPlanId, planIdForStripePrice, type PlanId } from "@/config/plans";
 import { grantMonthlyCredits } from "@/lib/credits";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -176,7 +176,17 @@ async function syncSubscription(
   }
 
   const isActive = ACTIVE_STATUSES.has(subscription.status);
-  const plan = isActive ? "PRO" : "FREE";
+
+  // Resolve the tier from the price actually being billed. Metadata is only a
+  // fallback — the price is what Stripe is charging, so it is the truth.
+  const billedPriceId = subscription.items?.data?.[0]?.price?.id;
+  const fromPrice = billedPriceId ? planIdForStripePrice(billedPriceId) : null;
+  const fromMetadata = subscription.metadata?.plan;
+
+  const resolvedPlan: PlanId =
+    fromPrice ?? (isPlanId(fromMetadata) ? fromMetadata : "STARTER");
+
+  const plan: PlanId = isActive ? resolvedPlan : "FREE";
 
   const customerId =
     typeof subscription.customer === "string"
@@ -217,8 +227,8 @@ async function syncSubscription(
 
   await grantMonthlyCredits({
     userId,
-    amount: PLANS.PRO.monthlyCredits,
+    amount: PLANS[plan].monthlyCredits,
     period,
-    description: "Pro plan monthly credits",
+    description: `${PLANS[plan].name} plan monthly credits`,
   });
 }

@@ -62,7 +62,7 @@ export function ImageDetail({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { isPro, refresh } = useCredits();
+  const { features, refresh } = useCredits();
 
   const [favorite, setFavorite] = React.useState(false);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -251,7 +251,7 @@ export function ImageDetail({
                 </Button>
               ) : null}
 
-              {isPro ? (
+              {features.imageToImage || features.upscale ? (
                 <>
                   <Button
                     size="sm"

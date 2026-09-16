@@ -12,6 +12,16 @@ import {
 } from "./types";
 
 export * from "./types";
+export {
+  generateProductScene,
+  type ProductSceneParams,
+  type ProductSceneResult,
+} from "./product-scene";
+export {
+  DEFAULT_PLACEMENT,
+  verifyProductPreserved,
+  type Placement,
+} from "./composite";
 
 const PROVIDERS: Record<string, ImageGenerationProvider> = {
   hosted: hostedProvider,
@@ -63,6 +73,8 @@ export async function upscaleImage(
 ): Promise<GenerationResult> {
   return getProvider(providerId).upscale(params);
 }
+
+/** Runs the full product pipeline. See lib/generation-engine/product-scene.ts. */
 
 /** Capabilities of the active engine, safe to expose to the client. */
 export function getActiveCapabilities() {

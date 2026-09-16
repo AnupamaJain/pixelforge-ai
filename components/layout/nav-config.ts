@@ -3,6 +3,9 @@ import {
   Images,
   LayoutDashboard,
   History,
+  Package,
+  Palette,
+  Rows3,
   Settings,
   Sparkles,
   Layers,
@@ -11,9 +14,12 @@ import {
 
 export const PRIMARY_NAV = [
   { href: "/app", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/product-studio", label: "Product Studio", Icon: Package, feature: "productScenes" },
   { href: "/generate", label: "Generate", Icon: Sparkles },
-  { href: "/image-to-image", label: "Image to Image", Icon: Layers, proOnly: true },
-  { href: "/upscale", label: "Upscale", Icon: Maximize2, proOnly: true },
+  { href: "/image-to-image", label: "Image to Image", Icon: Layers, feature: "imageToImage" },
+  { href: "/upscale", label: "Upscale", Icon: Maximize2, feature: "upscale" },
+  { href: "/batch", label: "Batch", Icon: Rows3, feature: "batchGeneration" },
+  { href: "/brand-kits", label: "Brand Kits", Icon: Palette, feature: "brandKits" },
   { href: "/gallery", label: "Gallery", Icon: Images },
   { href: "/history", label: "History", Icon: History },
 ] as const;

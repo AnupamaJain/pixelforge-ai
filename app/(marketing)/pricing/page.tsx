@@ -14,14 +14,14 @@ export default function PricingPage() {
       <section className="border-b border-border py-16 sm:py-20">
         <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Pricing that tracks what you actually make
+            Pricing that tracks what you actually ship
           </h1>
           <p className="mt-4 leading-relaxed text-fg-muted">
-            Credits are spent per image, never per session. One image costs{" "}
-            {CREDIT_COSTS.TEXT_TO_IMAGE} credit, a transform costs{" "}
-            {CREDIT_COSTS.IMAGE_TO_IMAGE}, and upscales cost{" "}
-            {CREDIT_COSTS.UPSCALE_2X} at 2× or {CREDIT_COSTS.UPSCALE_4X} at 4×.
-            Failed generations are always refunded.
+            A product photoshoot costs $500–5,000 and takes a week. Credits
+            meter what you actually make: {CREDIT_COSTS.PRODUCT_SCENE} per
+            product scene, {CREDIT_COSTS.TEXT_TO_IMAGE} per generated image, and{" "}
+            {CREDIT_COSTS.UPSCALE_4X} for a 4× upscale. Failed runs are always
+            refunded.
           </p>
         </div>
       </section>

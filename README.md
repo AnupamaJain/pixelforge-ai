@@ -1,8 +1,14 @@
 # PixelForge AI
 
-A lean, production-shaped SaaS for AI image generation: text-to-image,
-image-to-image, upscaling, style presets, a gallery, prompt history, a real
-server-enforced credit system, and Stripe subscriptions.
+**Product photography without the photoshoot.**
+
+Upload one product photo, get back marketplace-ready scenes — with your product
+**pixel-identical** in every one, because it is composited from your original
+file rather than generated.
+
+Also includes general text-to-image, image-to-image, upscaling, brand kits,
+CSV-driven batch runs, marketplace export presets, creative performance
+tracking, a server-enforced credit system, and Stripe subscriptions.
 
 Built to be **run locally first**, then deployed.
 
@@ -40,27 +46,35 @@ PixelForge AI is a creative workspace built around a single loop:
 
 | Capability | Notes |
 |---|---|
-| Text-to-image | Prompt, negative prompt, 12 style presets, 6 aspect ratios, 1/2/4 images, seed control |
-| Image-to-image | Upload a source, steer with a prompt, strength dial. The original is never modified |
+| **Product Studio** | Segment a product, generate a scene around it, composite the original pixels back — then verify none changed |
+| **Brand kits** | Palette, prompt language and exclusions applied to every generation |
+| **Batch runs** | Paste a CSV, write one template, generate a whole catalogue. Each row bills and refunds independently |
+| **Marketplace export** | Amazon, Shopify, Etsy, eBay, Instagram, Pinterest and print presets, single file or ZIP |
+| **Performance tracking** | Import per-creative metrics, sorted by ROAS |
+| Text-to-image | 12 style presets, 6 aspect ratios, seed control |
+| Image-to-image | Strength dial; the original upload is never modified |
 | Upscaling | 2× and 4× via a real super-resolution model |
-| Gallery | Masonry grid, favourites, full metadata, per-image actions |
-| Prompt history | Searchable, filterable, re-runnable |
-| Credits | Enforced server-side with an append-only ledger and automatic refunds |
-| Billing | Stripe Checkout, billing portal, signature-verified idempotent webhooks |
+| Gallery & history | Full metadata, favourites, searchable and re-runnable |
+| Credits | Server-enforced, append-only ledger, automatic refunds |
+| Billing | Stripe Checkout, portal, signature-verified idempotent webhooks |
 
 ### Plans
 
-| | Free | Pro |
-|---|---|---|
-| Monthly credits | 50 | 1,000 |
-| Max resolution | 768px | 1,536px |
-| Images per request | 2 | 4 |
-| Image-to-image | — | ✅ |
-| Upscaling | — | ✅ |
-| Priority queue | — | ✅ |
+| | Free | Starter | Growth | Agency |
+|---|---|---|---|---|
+| Price | $0 | $49/mo | $149/mo | $499/mo |
+| Monthly credits | 30 | 600 | 2,500 | 10,000 |
+| Max resolution | 768px | 1536px | 2048px | 2048px |
+| Images per request | 2 | 4 | 8 | 8 |
+| Product Studio | — | ✅ | ✅ | ✅ |
+| Brand kits | — | 1 | 5 | 50 |
+| Batch rows | — | 25 | 200 | 1,000 |
+| Marketplace export | — | ✅ | ✅ | ✅ |
+| Performance tracking | — | — | ✅ | ✅ |
+| Client workspaces | — | — | — | 25 |
+| White-label + API | — | — | — | ✅ |
 
-Every one of these limits is environment-configurable — see
-[`config/plans.ts`](config/plans.ts).
+Every limit is environment-configurable — see [`config/plans.ts`](config/plans.ts).
 
 ### Credit costs
 
@@ -68,11 +82,36 @@ Every one of these limits is environment-configurable — see
 |---|---|
 | Text-to-image | 1 per image |
 | Image-to-image | 2 per image |
+| **Product scene** | **5 per image** |
 | Upscale 2× | 3 |
 | Upscale 4× | 6 |
 
 Requesting 4 images costs 4× the per-image price. **A failed generation is
 always refunded in full.**
+
+---
+
+## 1a. The pixel-identical guarantee
+
+This is the product's core claim, so it is implemented as a check rather than a
+promise. In [`lib/generation-engine/product-scene.ts`](lib/generation-engine/product-scene.ts):
+
+1. The product is **segmented** out of the uploaded photo (provider).
+2. A base image + dilated mask are built so the model paints only *around* it.
+3. The **scene** is generated (provider).
+4. The **original product pixels are composited back** over the scene — ours,
+   in [`lib/generation-engine/composite.ts`](lib/generation-engine/composite.ts).
+5. Every fully-opaque product pixel is **compared byte for byte** against the
+   source. If any differ, the generation **fails and credits are refunded**.
+
+Because step 4 happens in our code rather than in a prompt, the guarantee holds
+for any provider. `npm run test:composite` proves it — including a negative
+control that confirms a *modified* product is detected.
+
+> **Product Studio requires `IMAGE_PROVIDER=hosted`.** InvokeAI ships the
+> building blocks (`grounding_dino` → `segment_anything` →
+> `apply_tensor_mask_to_image`) but that graph is not wired up, so the InvokeAI
+> provider reports `productScenes: false` rather than failing at runtime.
 
 ---
 
@@ -170,29 +209,43 @@ app/
   (auth)/            Login, signup, password reset
   (app)/             Authenticated workspace
     app/             Dashboard
+    product-studio/  Pixel-identical product scenes
     generate/        Text-to-image
-    image-to-image/  Transforms (Pro)
-    upscale/         Upscaling (Pro)
+    image-to-image/  Transforms
+    upscale/         Upscaling
+    batch/           CSV-driven bulk runs
+    brand-kits/      Reusable brand definitions
     gallery/  history/  billing/  settings/
   api/               All server endpoints
 components/
   generation/  gallery/  layout/  marketing/  auth/  ui/
 config/
-  plans.ts     Plan definitions and limits
-  credits.ts   Credit pricing
-  styles.ts    Style preset catalogue
-  generation.ts Aspect ratios, sizes, ranges
+  plans.ts        Plan definitions and limits
+  credits.ts      Credit pricing
+  styles.ts       Style preset catalogue
+  scenes.ts       Product scene catalogue
+  marketplace.ts  Export presets (Amazon, Shopify, …)
+  showcase.ts     Marketing imagery manifest
+  testimonials.ts Testimonials + anti-fabrication guard
+  generation.ts   Aspect ratios, sizes, ranges
 lib/
   auth/  credits/  generation-engine/  safety/  storage/
   stripe/  supabase/  rate-limit/  validation/  jobs/  api/
 providers/
   hosted/      Replicate adapter
   invokeai/    Self-hosted InvokeAI adapter + graph builders
+lib/generation-engine/
+  composite.ts     Pixel-identical compositing + verification
+  product-scene.ts Segment -> generate -> composite -> verify
 supabase/migrations/
   0001_init.sql                  Schema + RLS
   0002_credits_and_triggers.sql  Atomic credit functions
   0003_storage.sql               Buckets + storage policies
-scripts/verify-logic.ts          Business-logic test suite
+  0004_generation_type_enum.sql  PRODUCT_SCENE enum value
+  0005_studio.sql                Brand kits, batch, clients, performance
+scripts/
+  verify-logic.ts      Business-logic test suite
+  verify-composite.ts  Pixel-identical guarantee test suite
 ```
 
 ---
@@ -252,6 +305,12 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...   # server-only, never expose
    1. `supabase/migrations/0001_init.sql`
    2. `supabase/migrations/0002_credits_and_triggers.sql`
    3. `supabase/migrations/0003_storage.sql`
+   4. `supabase/migrations/0004_generation_type_enum.sql`
+   5. `supabase/migrations/0005_studio.sql`
+
+   > `0004` and `0005` are separate because `ALTER TYPE … ADD VALUE` must be
+   > committed before the new enum value can be used. Run them as two
+   > statements, not one.
 
    Or with the Supabase CLI:
 
@@ -407,15 +466,30 @@ InvokeAI (the NVIDIA PiD decoder) is **non-commercial only**.
 STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxx
 ```
 
-3. **Product catalogue → Add product:**
-   - Name: `PixelForge AI Pro`
-   - Price: `$15.00` / **Recurring** / **Monthly**
-4. Copy the **price ID** (starts `price_`):
+3. **Product catalogue → Add product**, three times — one per paid tier:
+
+   | Product | Price | Billing |
+   |---|---|---|
+   | PixelForge AI Starter | $49.00 | Recurring, monthly |
+   | PixelForge AI Growth | $149.00 | Recurring, monthly |
+   | PixelForge AI Agency | $499.00 | Recurring, monthly |
+
+4. Copy each **price ID** (starts `price_`):
 
 ```bash
-STRIPE_PRICE_ID=price_xxxxxxxxxxxxx
-PRO_PRICE_CENTS=1500   # display only; Stripe owns the real amount
+STRIPE_PRICE_ID_STARTER=price_xxxxxxxxxxxxx
+STRIPE_PRICE_ID_GROWTH=price_xxxxxxxxxxxxx
+STRIPE_PRICE_ID_AGENCY=price_xxxxxxxxxxxxx
+
+# Display only; Stripe owns the amount actually charged.
+STARTER_PRICE_CENTS=4900
+GROWTH_PRICE_CENTS=14900
+AGENCY_PRICE_CENTS=49900
 ```
+
+> The webhook resolves a customer's tier from **the price Stripe is billing**,
+> falling back to checkout metadata. Get these IDs wrong and a paying customer
+> lands on the wrong plan.
 
 5. **Enable the billing portal** at
    [dashboard.stripe.com/test/settings/billing/portal](https://dashboard.stripe.com/test/settings/billing/portal)
@@ -509,7 +583,20 @@ See [`.env.example`](.env.example) for the annotated master list.
 
 ### Stripe
 
-`STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `STRIPE_PRICE_ID`
+`STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` ·
+`STRIPE_PRICE_ID_STARTER` · `STRIPE_PRICE_ID_GROWTH` · `STRIPE_PRICE_ID_AGENCY`
+
+### Marketing page honesty flags
+
+| Variable | Effect |
+|---|---|
+| `NEXT_PUBLIC_SHOWCASE_PLACEHOLDER` | Anything but `false` shows a "Sample imagery" note, because `/public/showcase` ships licensed **stock photos**, not output from this app. Replace the files with real generations, then set to `false`. |
+| `NEXT_PUBLIC_SHOW_PLACEHOLDER_TESTIMONIALS` | Placeholder testimonials **never render** unless this is `true`. Set it only locally. See below. |
+
+> **On testimonials:** `config/testimonials.ts` ships placeholders that are
+> filtered out in production by default. Fabricated testimonials are illegal
+> under the FTC's 16 CFR Part 465 (US), the DMCC Act 2024 (UK) and the UCPD
+> (EU). Only add real quotes, with written permission, and record `consentDate`.
 
 ### Tunables (all optional, with sane defaults)
 
@@ -568,15 +655,25 @@ stop InvokeAI), then generate. The job should end **FAILED**, you should see
 ## 15. Testing
 
 ```bash
-npm run typecheck   # strict TypeScript across the whole project
-npm test            # business-logic suite (39 checks, no DB or network needed)
-npm run build       # full production build
+npm run typecheck      # strict TypeScript across the whole project
+npm test               # both suites below
+npm run test:composite  # pixel-identical guarantee only
+npm run build          # full production build
 ```
 
-`npm test` covers the rules users feel most directly: credit pricing, dimension
-resolution and plan caps, style composition, and the prompt safety layer —
-including checks that innocuous prompts like *"children playing in a park"* are
-**not** falsely blocked.
+**`scripts/verify-logic.ts` (39 checks)** covers the rules users feel most
+directly: credit pricing, dimension resolution and plan caps, style
+composition, and the prompt safety layer — including checks that innocuous
+prompts like *"children playing in a park"* are **not** falsely blocked.
+
+**`scripts/verify-composite.ts` (14 checks)** proves the pixel-identical
+guarantee end to end: that segmentation output has a real alpha channel, that
+the generated mask protects the product while leaving the rest paintable, that
+compositing preserves every opaque pixel across several placements and on
+non-square canvases, and — critically — a **negative control** confirming that
+a product which *has* been altered is correctly detected.
+
+Neither suite needs a database, an API key or a network connection.
 
 ---
 

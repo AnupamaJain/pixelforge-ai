@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { requireAuthContext } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStripeConfigured } from "@/lib/stripe";
-import { PLANS } from "@/config/plans";
+import { PLANS, PLAN_ORDER } from "@/config/plans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BillingView } from "./view";
 
@@ -39,8 +39,14 @@ export default async function BillingPage() {
         planId={auth.planId}
         planName={auth.plan.name}
         monthlyCredits={auth.plan.monthlyCredits}
-        proCredits={PLANS.PRO.monthlyCredits}
-        proPriceCents={PLANS.PRO.priceCents}
+        catalogue={PLAN_ORDER.map((id) => ({
+          id: PLANS[id].id,
+          name: PLANS[id].name,
+          audience: PLANS[id].audience,
+          priceCents: PLANS[id].priceCents,
+          monthlyCredits: PLANS[id].monthlyCredits,
+          highlights: PLANS[id].highlights,
+        }))}
         credits={balance.data?.balance ?? 0}
         lifetimeGranted={balance.data?.lifetime_granted ?? 0}
         lifetimeSpent={balance.data?.lifetime_spent ?? 0}

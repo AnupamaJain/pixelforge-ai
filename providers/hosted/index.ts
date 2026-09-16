@@ -7,6 +7,9 @@ import {
   type ImageGenerationProvider,
   type ImageToImageParams,
   type ProviderCapabilities,
+  type SceneParams,
+  type SegmentParams,
+  type SegmentResult,
   type TextToImageParams,
   type UpscaleParams,
 } from "@/lib/generation-engine/types";
@@ -33,6 +36,15 @@ const SDXL_VERSION =
 const ESRGAN_VERSION =
   process.env.HOSTED_ESRGAN_VERSION ||
   "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa";
+
+/**
+ * Background removal runs through Replicate's model endpoint
+ * (POST /v1/models/{owner}/{name}/predictions), which resolves the model's
+ * current default version. That avoids pinning a version hash we would then
+ * have to keep correct.
+ */
+const REMOVE_BG_MODEL =
+  process.env.HOSTED_REMOVE_BG_MODEL || "851-labs/background-remover";
 
 interface PredictionResponse {
   id: string;
@@ -83,6 +95,18 @@ async function createPrediction(
   const response = await replicateFetch(`${API_BASE}/predictions`, {
     method: "POST",
     body: JSON.stringify({ version, input }),
+  });
+  return (await response.json()) as PredictionResponse;
+}
+
+/** Runs a model by owner/name rather than by pinned version. */
+async function createModelPrediction(
+  model: string,
+  input: Record<string, unknown>,
+): Promise<PredictionResponse> {
+  const response = await replicateFetch(`${API_BASE}/models/${model}/predictions`, {
+    method: "POST",
+    body: JSON.stringify({ input }),
   });
   return (await response.json()) as PredictionResponse;
 }
@@ -174,6 +198,7 @@ const capabilities: ProviderCapabilities = {
   textToImage: true,
   imageToImage: true,
   upscale: true,
+  productScenes: true,
   supportsSteps: true,
   supportsGuidance: true,
   supportsNegativePrompt: true,
@@ -276,6 +301,74 @@ export const hostedProvider: ImageGenerationProvider = {
         provider: "hosted",
         model: "real-esrgan",
         seed: null,
+        durationMs: Date.now() - startedAt,
+      },
+    };
+  },
+
+  async removeBackground(params: SegmentParams): Promise<SegmentResult> {
+    const prediction = await createModelPrediction(REMOVE_BG_MODEL, {
+      image: toDataUri(params.image, params.imageContentType),
+      format: "png",
+    });
+
+    const completed = await waitForPrediction(prediction, params.signal);
+    const [cutout] = await downloadImages(outputUrls(completed));
+
+    if (!cutout) throw new ProviderError("Background removal returned no image");
+
+    const sharp = (await import("sharp")).default;
+    // ensureAlpha guarantees a real alpha channel for compositing, even if the
+    // model returned a flattened image.
+    const normalised = await sharp(cutout).ensureAlpha().png().toBuffer();
+    const meta = await sharp(normalised).metadata();
+
+    return {
+      cutout: normalised,
+      width: meta.width ?? 0,
+      height: meta.height ?? 0,
+    };
+  },
+
+  async generateScene(params: SceneParams): Promise<GenerationResult> {
+    const startedAt = Date.now();
+    const seed = params.seed ?? randomSeed();
+    const steps = params.steps ?? 32;
+    const guidance = params.guidance ?? 7;
+
+    // With a base image and mask the model inpaints around the product, so its
+    // lighting and shadows agree with the object. Without them it generates a
+    // plain backdrop the product is composited onto.
+    const input: Record<string, unknown> = {
+      prompt: params.prompt,
+      negative_prompt: params.negativePrompt || undefined,
+      width: params.width,
+      height: params.height,
+      num_outputs: params.imageCount,
+      num_inference_steps: steps,
+      guidance_scale: guidance,
+      seed,
+      apply_watermark: false,
+    };
+
+    if (params.baseImage && params.maskImage) {
+      input.image = toDataUri(params.baseImage, "image/png");
+      input.mask = toDataUri(params.maskImage, "image/png");
+      input.prompt_strength = 1;
+    }
+
+    const prediction = await createPrediction(SDXL_VERSION, input);
+    const completed = await waitForPrediction(prediction, params.signal);
+    const buffers = await downloadImages(outputUrls(completed));
+
+    return {
+      images: await toGeneratedImages(buffers, seed),
+      metadata: {
+        provider: "hosted",
+        model: "sdxl",
+        seed,
+        steps,
+        guidance,
         durationMs: Date.now() - startedAt,
       },
     };

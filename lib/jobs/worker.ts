@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { refundCredits } from "@/lib/credits";
 import {
   generateImage,
+  generateProductScene,
   imageToImage,
   upscaleImage,
   ProviderError,
@@ -29,7 +30,7 @@ import {
  */
 
 export interface JobInput {
-  type: "TEXT_TO_IMAGE" | "IMAGE_TO_IMAGE" | "UPSCALE";
+  type: "TEXT_TO_IMAGE" | "IMAGE_TO_IMAGE" | "PRODUCT_SCENE" | "UPSCALE";
   prompt: string;
   negativePrompt: string;
   width: number;
@@ -43,12 +44,22 @@ export interface JobInput {
   upscaleFactor?: 2 | 4;
   sourceBucket?: string;
   sourcePath?: string;
+  /** Product-scene only. */
+  sceneId?: string;
+  placement?: { scale: number; offsetX: number; offsetY: number };
+  shadow?: boolean;
+  brandKitId?: string | null;
+  clientId?: string | null;
+  batchItemId?: string | null;
 }
 
 const GENERIC_FAILURE =
   "Image generation failed. Your credits have been refunded. Please try again.";
 
-async function runProvider(input: JobInput): Promise<GenerationResult> {
+async function runProvider(
+  input: JobInput,
+  cutoutSink?: (cutout: Buffer) => Promise<void>,
+): Promise<GenerationResult> {
   if (input.type === "TEXT_TO_IMAGE") {
     return generateImage({
       prompt: input.prompt,
@@ -71,6 +82,28 @@ async function runProvider(input: JobInput): Promise<GenerationResult> {
   }
 
   const source = await downloadImage(input.sourceBucket, input.sourcePath);
+
+  if (input.type === "PRODUCT_SCENE") {
+    const result = await generateProductScene({
+      productImage: source.data,
+      productContentType: source.contentType,
+      scenePrompt: input.prompt,
+      negativePrompt: input.negativePrompt,
+      width: input.width,
+      height: input.height,
+      imageCount: input.imageCount,
+      seed: input.seed,
+      steps: input.steps,
+      guidance: input.guidance,
+      placement: input.placement,
+      shadow: input.shadow,
+    });
+
+    // Persist the cut-out so the guarantee can be re-verified later.
+    if (cutoutSink) await cutoutSink(result.cutout);
+
+    return result;
+  }
 
   if (input.type === "IMAGE_TO_IMAGE") {
     return imageToImage({
@@ -143,7 +176,19 @@ export async function processJob(jobId: string): Promise<void> {
   const input = job.input as JobInput;
 
   try {
-    const result = await runProvider(input);
+    // Product scenes return a cut-out alongside the images; store it under the
+    // generation so the pixel-identical claim stays auditable.
+    let cutoutPath: string | null = null;
+
+    const result = await runProvider(input, async (cutout) => {
+      cutoutPath = `users/${job.user_id}/generations/${job.generation_id}/product-mask.png`;
+      await putObject({
+        bucket: GENERATIONS_BUCKET,
+        path: cutoutPath,
+        data: cutout,
+        contentType: "image/png",
+      });
+    });
 
     if (result.images.length === 0) {
       throw new ProviderError("Provider returned zero images");
@@ -199,6 +244,8 @@ export async function processJob(jobId: string): Promise<void> {
         // dimensions are decided by the engine.
         width: firstImage.width || null,
         height: firstImage.height || null,
+        product_mask_path: cutoutPath,
+        product_preserved: input.type === "PRODUCT_SCENE" ? true : false,
       })
       .eq("id", job.generation_id);
 
@@ -218,6 +265,10 @@ export async function processJob(jobId: string): Promise<void> {
       .from("prompt_history")
       .update({ status: "COMPLETED" })
       .eq("generation_id", job.generation_id);
+
+    if (input.batchItemId) {
+      await recordBatchProgress(input.batchItemId, "COMPLETED");
+    }
   } catch (error) {
     await failJob({
       jobId,
@@ -225,7 +276,52 @@ export async function processJob(jobId: string): Promise<void> {
       userId: job.user_id,
       error,
     });
+
+    if (input.batchItemId) {
+      await recordBatchProgress(input.batchItemId, "FAILED");
+    }
   }
+}
+
+/**
+ * Advances a batch item and its parent run. The run is marked COMPLETED once
+ * every item has settled, so the UI can stop polling.
+ */
+async function recordBatchProgress(
+  batchItemId: string,
+  status: "COMPLETED" | "FAILED",
+): Promise<void> {
+  const admin = createAdminClient();
+
+  const { data: item } = await admin
+    .from("batch_items")
+    .update({ status })
+    .eq("id", batchItemId)
+    .select("batch_run_id")
+    .maybeSingle();
+
+  if (!item) return;
+
+  const { data: siblings } = await admin
+    .from("batch_items")
+    .select("status")
+    .eq("batch_run_id", item.batch_run_id);
+
+  if (!siblings) return;
+
+  const completed = siblings.filter((row) => row.status === "COMPLETED").length;
+  const failed = siblings.filter((row) => row.status === "FAILED").length;
+  const settled = completed + failed === siblings.length;
+
+  await admin
+    .from("batch_runs")
+    .update({
+      completed_rows: completed,
+      failed_rows: failed,
+      status: settled ? (completed === 0 ? "FAILED" : "COMPLETED") : "PROCESSING",
+      completed_at: settled ? new Date().toISOString() : null,
+    })
+    .eq("id", item.batch_run_id);
 }
 
 async function failJob(params: {

@@ -23,7 +23,7 @@ export default async function AppLayout({
   return (
     <CreditsProvider initialCredits={auth.credits} plan={auth.planId}>
       <div className="flex min-h-dvh bg-bg">
-        <Sidebar isPro={auth.planId === "PRO"} />
+        <Sidebar features={auth.plan.features} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Header email={auth.user.email ?? ""} />
           <main id="main" className="flex-1 pb-20 lg:pb-0">

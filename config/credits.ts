@@ -15,6 +15,8 @@ function envInt(key: string, fallback: number): number {
 export const CREDIT_COSTS = {
   TEXT_TO_IMAGE: envInt("TEXT_TO_IMAGE_CREDIT_COST", 1),
   IMAGE_TO_IMAGE: envInt("IMAGE_TO_IMAGE_CREDIT_COST", 2),
+  /** Segmentation + scene generation + composite — the most expensive path. */
+  PRODUCT_SCENE: envInt("PRODUCT_SCENE_CREDIT_COST", 5),
   UPSCALE_2X: envInt("UPSCALE_2X_CREDIT_COST", 3),
   UPSCALE_4X: envInt("UPSCALE_4X_CREDIT_COST", 6),
 } as const;
@@ -35,6 +37,8 @@ export function calculateCreditCost(params: {
       return CREDIT_COSTS.TEXT_TO_IMAGE * count;
     case "IMAGE_TO_IMAGE":
       return CREDIT_COSTS.IMAGE_TO_IMAGE * count;
+    case "PRODUCT_SCENE":
+      return CREDIT_COSTS.PRODUCT_SCENE * count;
     case "UPSCALE":
       return params.upscaleFactor === 4
         ? CREDIT_COSTS.UPSCALE_4X
@@ -46,7 +50,22 @@ export function calculateCreditCost(params: {
   }
 }
 
-/** Human-readable cost summary used by the UI before a user commits. */
+/** Total cost of a batch run, so it can be quoted before a single credit is spent. */
+export function calculateBatchCost(params: {
+  type: GenerationType;
+  rows: number;
+  imagesPerRow: number;
+  upscaleFactor?: UpscaleFactor;
+}): number {
+  return (
+    calculateCreditCost({
+      type: params.type,
+      imageCount: params.imagesPerRow,
+      upscaleFactor: params.upscaleFactor,
+    }) * Math.max(1, params.rows)
+  );
+}
+
 export function describeCost(credits: number): string {
   return `${credits} credit${credits === 1 ? "" : "s"}`;
 }

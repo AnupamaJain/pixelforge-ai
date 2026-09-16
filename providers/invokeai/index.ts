@@ -248,6 +248,12 @@ const capabilities: ProviderCapabilities = {
   textToImage: true,
   imageToImage: true,
   upscale: true,
+  // Product Studio needs background removal. InvokeAI ships the pieces
+  // (`grounding_dino` -> `segment_anything` -> `apply_tensor_mask_to_image`),
+  // but that graph is not wired up here yet, so the capability is reported
+  // honestly as unavailable rather than failing at generation time.
+  // Run IMAGE_PROVIDER=hosted for Product Studio.
+  productScenes: false,
   supportsSteps: true,
   supportsGuidance: true,
   supportsNegativePrompt: true,

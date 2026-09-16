@@ -1,4 +1,8 @@
-export type GenerationType = "TEXT_TO_IMAGE" | "IMAGE_TO_IMAGE" | "UPSCALE";
+export type GenerationType =
+  | "TEXT_TO_IMAGE"
+  | "IMAGE_TO_IMAGE"
+  | "PRODUCT_SCENE"
+  | "UPSCALE";
 
 export type GenerationStatus =
   | "QUEUED"
