@@ -8,11 +8,11 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/app";
+  const next = searchParams.get("next") ?? "/dashboard";
 
   // Only allow same-origin relative paths, so the link can't be used as an
   // open redirect.
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/app";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 
   if (code) {
     const supabase = await createClient();

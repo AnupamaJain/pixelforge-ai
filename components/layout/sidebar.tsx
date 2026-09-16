@@ -13,7 +13,7 @@ export function Sidebar({ features }: { features: PlanFeatures }) {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+    return href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
   }
 
   return (

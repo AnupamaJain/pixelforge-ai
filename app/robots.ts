@@ -16,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          "/app",
+          "/dashboard",
           "/generate",
           "/product-studio",
           "/image-to-image",

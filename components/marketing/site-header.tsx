@@ -39,7 +39,7 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
           {isAuthenticated ? (
-            <Link href="/app">
+            <Link href="/dashboard">
               <Button size="sm">Open workspace</Button>
             </Link>
           ) : (
@@ -85,7 +85,7 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
               <ThemeToggle />
               <div className="flex gap-2">
                 {isAuthenticated ? (
-                  <Link href="/app">
+                  <Link href="/dashboard">
                     <Button size="sm">Open workspace</Button>
                   </Link>
                 ) : (

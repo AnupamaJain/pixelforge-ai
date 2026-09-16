@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const PRIMARY_NAV = [
-  { href: "/app", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/product-studio", label: "Product Studio", Icon: Package, feature: "productScenes" },
   { href: "/generate", label: "Generate", Icon: Sparkles },
   { href: "/image-to-image", label: "Image to Image", Icon: Layers, feature: "imageToImage" },
@@ -33,7 +33,7 @@ export const SECONDARY_NAV = [
 
 /** Condensed set for the mobile bottom bar — five items is the practical max. */
 export const MOBILE_NAV = [
-  { href: "/app", label: "Home", Icon: LayoutDashboard },
+  { href: "/dashboard", label: "Home", Icon: LayoutDashboard },
   { href: "/generate", label: "Generate", Icon: Sparkles },
   { href: "/gallery", label: "Gallery", Icon: Images },
   { href: "/history", label: "History", Icon: History },

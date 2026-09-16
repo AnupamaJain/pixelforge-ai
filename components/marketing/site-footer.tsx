@@ -44,7 +44,7 @@ const COLUMNS = [
     links: [
       { href: "/login", label: "Log in" },
       { href: "/signup", label: "Create account" },
-      { href: "/app", label: "Workspace" },
+      { href: "/dashboard", label: "Workspace" },
       { href: "/billing", label: "Billing" },
     ],
   },

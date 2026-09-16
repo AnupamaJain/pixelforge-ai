@@ -46,7 +46,7 @@ export function Header({ email }: { email: string }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-bg/85 px-4 backdrop-blur-xl sm:px-6">
-      <Link href="/app" className="lg:hidden" aria-label="PixelForge AI dashboard">
+      <Link href="/dashboard" className="lg:hidden" aria-label="PixelForge AI dashboard">
         <Logo />
       </Link>
 

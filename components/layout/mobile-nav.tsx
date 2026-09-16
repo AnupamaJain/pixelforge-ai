@@ -19,7 +19,7 @@ export function MobileNav() {
     >
       <ul className="flex">
         {MOBILE_NAV.map(({ href, label, Icon }) => {
-          const active = href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+          const active = href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
           return (
             <li key={href} className="flex-1">
               <Link

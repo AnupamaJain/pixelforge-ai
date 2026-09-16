@@ -81,7 +81,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         if (error) throw error;
       }
 
-      const next = searchParams.get("next") || "/app";
+      const next = searchParams.get("next") || "/dashboard";
       router.push(next);
       router.refresh();
     } catch (error) {

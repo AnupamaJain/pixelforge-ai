@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_PREFIXES = [
-  "/app",
+  "/dashboard",
   "/generate",
   "/image-to-image",
   "/upscale",
@@ -56,7 +56,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && AUTH_ROUTES.includes(pathname)) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/app";
+    redirectUrl.pathname = "/dashboard";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
