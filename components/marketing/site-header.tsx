@@ -9,9 +9,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { href: "/#features", label: "Features" },
-  { href: "/#how-it-works", label: "How it works" },
+  { href: "/product-photography", label: "By category" },
+  { href: "/marketplace-image-requirements", label: "Image specs" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
 ];
 
 export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {

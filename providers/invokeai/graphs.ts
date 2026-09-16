@@ -35,6 +35,12 @@ export interface ModelIdentifier {
   type: string;
 }
 
+const SEGMENT_NODE = {
+  detect: "detect",
+  segment: "segment",
+  cutout: "cutout",
+} as const;
+
 const NODE = {
   model: "model_loader",
   positive: "positive_cond",
@@ -52,7 +58,76 @@ export const OUTPUT_NODE = {
   textToImage: NODE.decode,
   imageToImage: NODE.decode,
   upscale: NODE.upscale,
+  removeBackground: SEGMENT_NODE.cutout,
 } as const;
+
+/**
+ * Background removal, as a Grounded-SAM chain.
+ *
+ * `grounding_dino` locates the object from a text prompt and emits bounding
+ * boxes; `segment_anything` turns those into a mask tensor; and
+ * `apply_tensor_mask_to_image` cuts the subject out, leaving transparency
+ * everywhere else. Node names and field names were taken from
+ * invokeai/app/invocations/{grounding_dino,segment_anything,mask}.py.
+ *
+ * `mask_filter: "largest"` matters: a product photo often trips several weak
+ * detections (a shadow, a reflection), and we want the single main subject.
+ */
+export function buildRemoveBackgroundGraph(params: {
+  imageName: string;
+  /** What to look for. Grounding DINO expects a short noun phrase. */
+  prompt?: string;
+  detectionThreshold?: number;
+  dinoModel?: "grounding-dino-tiny" | "grounding-dino-base";
+  samModel?:
+    | "segment-anything-base"
+    | "segment-anything-large"
+    | "segment-anything-huge";
+}): InvokeGraph {
+  const image = { image_name: params.imageName };
+
+  return {
+    id: `rembg_${Date.now()}`,
+    nodes: {
+      [SEGMENT_NODE.detect]: {
+        id: SEGMENT_NODE.detect,
+        type: "grounding_dino",
+        model: params.dinoModel ?? "grounding-dino-base",
+        // A generic noun keeps this working across product categories.
+        prompt: params.prompt?.trim() || "the main product object",
+        image,
+        detection_threshold: params.detectionThreshold ?? 0.3,
+        is_intermediate: true,
+      },
+      [SEGMENT_NODE.segment]: {
+        id: SEGMENT_NODE.segment,
+        type: "segment_anything",
+        model: params.samModel ?? "segment-anything-base",
+        image,
+        apply_polygon_refinement: true,
+        mask_filter: "largest",
+        is_intermediate: true,
+      },
+      [SEGMENT_NODE.cutout]: {
+        id: SEGMENT_NODE.cutout,
+        type: "apply_tensor_mask_to_image",
+        image,
+        invert: false,
+        is_intermediate: false,
+      },
+    },
+    edges: [
+      {
+        source: { node_id: SEGMENT_NODE.detect, field: "collection" },
+        destination: { node_id: SEGMENT_NODE.segment, field: "bounding_boxes" },
+      },
+      {
+        source: { node_id: SEGMENT_NODE.segment, field: "mask" },
+        destination: { node_id: SEGMENT_NODE.cutout, field: "mask" },
+      },
+    ],
+  };
+}
 
 function sdxlBase(
   model: ModelIdentifier,

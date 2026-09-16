@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Faq, FinalCta, PricingSection } from "@/components/marketing/sections";
 import { CREDIT_COSTS } from "@/config/credits";
+import { buildMetadata, seoTitle } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Pricing",
+export const metadata: Metadata = buildMetadata({
+  title: seoTitle("Pricing — AI Product Photography"),
   description:
-    "Simple credit-based pricing. Start free, upgrade for transforms, upscaling and higher resolutions.",
-};
+    "A product photoshoot costs $500–5,000. Plans start at $49/month for pixel-identical product scenes, brand kits and batch generation.",
+  path: "/pricing",
+});
 
 export default function PricingPage() {
   return (

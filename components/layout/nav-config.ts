@@ -8,6 +8,7 @@ import {
   Rows3,
   Settings,
   Sparkles,
+  TrendingUp,
   Layers,
   Maximize2,
 } from "lucide-react";
@@ -22,6 +23,7 @@ export const PRIMARY_NAV = [
   { href: "/brand-kits", label: "Brand Kits", Icon: Palette, feature: "brandKits" },
   { href: "/gallery", label: "Gallery", Icon: Images },
   { href: "/history", label: "History", Icon: History },
+  { href: "/performance", label: "Performance", Icon: TrendingUp, feature: "performanceTracking" },
 ] as const;
 
 export const SECONDARY_NAV = [

@@ -7,11 +7,15 @@ import {
   type ImageGenerationProvider,
   type ImageToImageParams,
   type ProviderCapabilities,
+  type SceneParams,
+  type SegmentParams,
+  type SegmentResult,
   type TextToImageParams,
   type UpscaleParams,
 } from "@/lib/generation-engine/types";
 import {
   buildImageToImageGraph,
+  buildRemoveBackgroundGraph,
   buildTextToImageGraph,
   buildUpscaleGraph,
   OUTPUT_NODE,
@@ -248,12 +252,10 @@ const capabilities: ProviderCapabilities = {
   textToImage: true,
   imageToImage: true,
   upscale: true,
-  // Product Studio needs background removal. InvokeAI ships the pieces
-  // (`grounding_dino` -> `segment_anything` -> `apply_tensor_mask_to_image`),
-  // but that graph is not wired up here yet, so the capability is reported
-  // honestly as unavailable rather than failing at generation time.
-  // Run IMAGE_PROVIDER=hosted for Product Studio.
-  productScenes: false,
+  // Grounded-SAM background removal plus masked inpainting. Requires the
+  // Grounding DINO and Segment Anything models to be installed in InvokeAI;
+  // they download on first use.
+  productScenes: true,
   supportsSteps: true,
   supportsGuidance: true,
   supportsNegativePrompt: true,
@@ -392,6 +394,115 @@ export const invokeAIProvider: ImageGenerationProvider = {
         provider: "invokeai",
         model: params.factor === 2 ? "RealESRGAN_x2plus" : "RealESRGAN_x4plus",
         seed: null,
+        durationMs: Date.now() - startedAt,
+      },
+    };
+  },
+
+  async removeBackground(params: SegmentParams): Promise<SegmentResult> {
+    const imageName = await uploadImage(params.image, params.imageContentType);
+
+    const graph = buildRemoveBackgroundGraph({
+      imageName,
+      prompt: process.env.INVOKEAI_SEGMENT_PROMPT,
+      dinoModel: (process.env.INVOKEAI_DINO_MODEL as
+        | "grounding-dino-tiny"
+        | "grounding-dino-base"
+        | undefined) ?? undefined,
+    });
+
+    const [result] = await runGraph(
+      graph,
+      OUTPUT_NODE.removeBackground,
+      1,
+      params.signal,
+    );
+
+    const sharp = (await import("sharp")).default;
+    // ensureAlpha guarantees a real alpha channel for compositing even if the
+    // masked image came back flattened.
+    const normalised = await sharp(result.data).ensureAlpha().png().toBuffer();
+    const meta = await sharp(normalised).metadata();
+
+    return {
+      cutout: normalised,
+      width: meta.width ?? 0,
+      height: meta.height ?? 0,
+    };
+  },
+
+  async generateScene(params: SceneParams): Promise<GenerationResult> {
+    const startedAt = Date.now();
+    const model = await resolveModel();
+    const seed = params.seed ?? randomSeed();
+    const steps = params.steps ?? 32;
+    const guidance = params.guidance ?? 7;
+
+    const images: GeneratedImage[] = [];
+
+    // When a base image is supplied we inpaint around the product so its
+    // lighting agrees with the scene; otherwise we generate a plain backdrop
+    // for the product to be composited onto.
+    const baseImageName = params.baseImage
+      ? await uploadImage(params.baseImage, "image/png")
+      : null;
+
+    for (let index = 0; index < params.imageCount; index += 1) {
+      const imageSeed = seed + index;
+
+      const graph = baseImageName
+        ? buildImageToImageGraph({
+            model,
+            imageName: baseImageName,
+            prompt: params.prompt,
+            negativePrompt: params.negativePrompt ?? "",
+            width: params.width,
+            height: params.height,
+            steps,
+            guidance,
+            seed: imageSeed,
+            // High strength: the product region is replaced by the real pixels
+            // afterwards, so the model is free to reimagine the surroundings.
+            strength: 0.95,
+            scheduler: process.env.INVOKEAI_SCHEDULER || "euler",
+          })
+        : buildTextToImageGraph({
+            model,
+            prompt: params.prompt,
+            negativePrompt: params.negativePrompt ?? "",
+            width: params.width,
+            height: params.height,
+            steps,
+            guidance,
+            seed: imageSeed,
+            scheduler: process.env.INVOKEAI_SCHEDULER || "euler",
+          });
+
+      const [result] = await runGraph(
+        graph,
+        OUTPUT_NODE.textToImage,
+        1,
+        params.signal,
+      );
+      const dims = await measureImage(result.data);
+
+      images.push({
+        data: result.data,
+        contentType: "image/png",
+        width: dims.width || params.width,
+        height: dims.height || params.height,
+        seed: imageSeed,
+      });
+    }
+
+    return {
+      images,
+      metadata: {
+        provider: "invokeai",
+        model: model.name,
+        seed,
+        steps,
+        guidance,
         durationMs: Date.now() - startedAt,
       },
     };

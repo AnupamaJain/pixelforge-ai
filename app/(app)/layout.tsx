@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getAuthContext } from "@/lib/auth";
@@ -5,6 +6,14 @@ import { CreditsProvider } from "@/components/credits-provider";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sidebar } from "@/components/layout/sidebar";
+
+/**
+ * Every authenticated screen is behind a session, so indexing it would only
+ * surface a redirect. Noindex here covers the whole group.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 /**
  * Shell for every authenticated route. The plan and credit balance are read

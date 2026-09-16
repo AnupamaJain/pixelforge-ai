@@ -1,14 +1,42 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/brand";
+import { INDUSTRIES } from "@/config/industries";
+import { MARKETPLACE_GUIDES } from "@/config/marketplace-guides";
 
 const COLUMNS = [
   {
     title: "Product",
     links: [
       { href: "/#features", label: "Features" },
+      { href: "/#playground", label: "Try it free" },
       { href: "/#how-it-works", label: "How it works" },
       { href: "/pricing", label: "Pricing" },
       { href: "/#faq", label: "FAQ" },
+    ],
+  },
+  {
+    title: "Image requirements",
+    links: [
+      ...MARKETPLACE_GUIDES.map((guide) => ({
+        href: `/marketplace-image-requirements/${guide.slug}`,
+        label: `${guide.platform} image sizes`,
+      })),
+      {
+        href: "/marketplace-image-requirements",
+        label: "All marketplaces",
+      },
+    ],
+  },
+  {
+    title: "By category",
+    // Internal links from the footer help these pages get discovered and
+    // crawled; the rest are reachable from the hub page.
+    links: [
+      ...INDUSTRIES.slice(0, 5).map((industry) => ({
+        href: `/product-photography/${industry.slug}`,
+        label: `${industry.name} photography`,
+      })),
+      { href: "/product-photography", label: "All categories" },
     ],
   },
   {
@@ -26,8 +54,8 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-bg-subtle">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-2">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="lg:col-span-1">
             <Wordmark />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-fg-muted">
               A focused creative workspace for generating, transforming and

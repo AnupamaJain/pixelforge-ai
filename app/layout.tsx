@@ -1,21 +1,60 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider, themeScript } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { JsonLd } from "@/components/seo/json-ld";
+import { SITE, siteUrl } from "@/config/seo";
+import {
+  organizationSchema,
+  softwareApplicationSchema,
+  websiteSchema,
+} from "@/lib/seo/structured-data";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "PixelForge AI — Create stunning images with AI",
-    template: "%s · PixelForge AI",
+    default: `${SITE.name} — ${SITE.tagline}`,
+    // Page titles already carry the brand via seoTitle(), so no suffix here.
+    template: "%s",
   },
-  description:
-    "Generate, transform, upscale and organize your AI images from one simple creative workspace.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  description: SITE.description,
+  metadataBase: new URL(siteUrl()),
+  applicationName: SITE.name,
+  keywords: [
+    "ai product photography",
+    "product photo generator",
+    "ecommerce product images",
+    "product image background generator",
+    "amazon product image requirements",
+    "bulk product photography",
+  ],
+  authors: [{ name: SITE.name }],
+  creator: SITE.name,
+  publisher: SITE.name,
+  formatDetection: { telephone: false, address: false, email: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
-    title: "PixelForge AI — Create stunning images with AI",
-    description:
-      "Generate, transform, upscale and organize your AI images from one simple creative workspace.",
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    url: siteUrl(),
+    siteName: SITE.name,
+    locale: SITE.locale,
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    creator: SITE.twitter,
   },
 };
 
@@ -41,6 +80,10 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Site-wide structured data. Page-level schema is added per route. */}
+        <JsonLd
+          data={[organizationSchema(), websiteSchema(), softwareApplicationSchema()]}
+        />
         {/* First stop for keyboard users on every page. */}
         <a
           href="#main"

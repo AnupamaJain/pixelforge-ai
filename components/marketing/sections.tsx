@@ -549,7 +549,7 @@ export function PricingSection({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const FAQS = [
+export const HOME_FAQS = [
   {
     q: "What does “pixel-identical” actually mean?",
     a: "Your product is cut out of the photo you uploaded and composited back over the generated scene, so those pixels come from your own file rather than from a model. After compositing we compare every fully-opaque product pixel against the original; if any differ, the generation fails and your credits are returned. It's a check the software runs, not a promise we make.",
@@ -592,7 +592,7 @@ export function Faq() {
         </div>
 
         <div className="mt-10 divide-y divide-border border-y border-border">
-          {FAQS.map((faq) => (
+          {HOME_FAQS.map((faq) => (
             <details key={faq.q} className="group py-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-fg [&::-webkit-details-marker]:hidden">
                 {faq.q}

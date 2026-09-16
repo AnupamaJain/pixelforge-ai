@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Heart, Images } from "lucide-react";
+import { CheckSquare, Download, Heart, Images, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState, Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,8 @@ import { useToast } from "@/components/ui/toast";
 import { ImageCard, type GalleryItem } from "@/components/gallery/image-card";
 import { ImageDetail } from "@/components/gallery/image-detail";
 import { toggleFavorite } from "@/components/gallery/image-actions";
+import { ExportDialog } from "@/components/gallery/export-dialog";
+import { useCredits } from "@/components/credits-provider";
 import { cn } from "@/lib/utils";
 import type { GenerationType } from "@/types";
 
@@ -48,6 +50,10 @@ export function GalleryView() {
   const [favoritesOnly, setFavoritesOnly] = React.useState(false);
   const [typeFilter, setTypeFilter] = React.useState<"" | GenerationType>("");
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [selectMode, setSelectMode] = React.useState(false);
+  const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [exportOpen, setExportOpen] = React.useState(false);
+  const { features } = useCredits();
 
   const load = React.useCallback(
     async (offset: number, replace: boolean) => {
@@ -149,7 +155,26 @@ export function GalleryView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {features.marketplaceExport ? (
+            <Button
+              variant={selectMode ? "primary" : "secondary"}
+              size="sm"
+              aria-pressed={selectMode}
+              onClick={() => {
+                setSelectMode((value) => !value);
+                setSelected(new Set());
+              }}
+            >
+              {selectMode ? (
+                <CheckSquare aria-hidden="true" />
+              ) : (
+                <Square aria-hidden="true" />
+              )}
+              Select
+            </Button>
+          ) : null}
+
           <Select
             aria-label="Filter by generation type"
             value={typeFilter}
@@ -208,15 +233,40 @@ export function GalleryView() {
         <>
           {/* Masonry on desktop, denser columns on mobile. */}
           <div className="columns-2 gap-3 sm:columns-3 lg:columns-4 [&>*]:mb-3">
-            {items.map((item) => (
-              <div key={item.id} className="break-inside-avoid">
-                <ImageCard
-                  item={item}
-                  onOpen={() => setActiveId(item.id)}
-                  onToggleFavorite={() => handleToggleFavorite(item)}
-                />
-              </div>
-            ))}
+            {items.map((item) => {
+              const isSelected = selected.has(item.id);
+              return (
+                <div key={item.id} className="relative break-inside-avoid">
+                  <ImageCard
+                    item={item}
+                    onOpen={() => {
+                      if (!selectMode) {
+                        setActiveId(item.id);
+                        return;
+                      }
+                      setSelected((current) => {
+                        const next = new Set(current);
+                        if (next.has(item.id)) next.delete(item.id);
+                        else next.add(item.id);
+                        return next;
+                      });
+                    }}
+                    onToggleFavorite={() => handleToggleFavorite(item)}
+                  />
+                  {selectMode ? (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "pointer-events-none absolute inset-0 rounded-[--radius-md] border-2 transition-colors",
+                        isSelected
+                          ? "border-accent bg-accent/10"
+                          : "border-transparent",
+                      )}
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
 
           {hasMore ? (
@@ -232,6 +282,33 @@ export function GalleryView() {
           ) : null}
         </>
       )}
+
+      {selectMode && selected.size > 0 ? (
+        <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 lg:bottom-6">
+          <div className="flex items-center gap-3 rounded-full border border-border bg-surface-raised px-4 py-2.5 shadow-lg">
+            <span className="text-[13px] font-medium tabular-nums">
+              {selected.size} selected
+            </span>
+            <Button size="sm" onClick={() => setExportOpen(true)}>
+              <Download aria-hidden="true" />
+              Export
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelected(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        outputIds={[...selected]}
+      />
 
       <ImageDetail
         item={active}

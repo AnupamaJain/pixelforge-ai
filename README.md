@@ -34,7 +34,8 @@ Built to be **run locally first**, then deployed.
 16. [Production build](#16-production-build)
 17. [Deployment](#17-deployment)
 18. [Troubleshooting](#18-troubleshooting)
-19. [Licensing](#19-licensing)
+19. [SEO](#19-seo)
+20. [Licensing](#20-licensing)
 
 ---
 
@@ -777,7 +778,68 @@ Native dependency. On Alpine, `apk add vips-dev`, or switch to a Debian image.
 
 ---
 
-## 19. Licensing
+## 19. SEO
+
+### What is and isn't promised
+
+**No one can guarantee a #1 Google ranking**, and any tool or agency that
+promises one is misleading you. Position depends on domain authority,
+backlinks, competitor behaviour and algorithm updates — none of which live in
+this repository.
+
+What the code *does* control is implemented here: crawlability, structured
+data, canonical URLs, page speed, internal linking, and pages that genuinely
+answer a query better than the ones currently ranking.
+
+### Keyword strategy
+
+Defined in [`config/seo.ts`](config/seo.ts) with three clusters, in priority
+order:
+
+| Cluster | Example | Why |
+|---|---|---|
+| **Marketplace specs** | `amazon product image requirements` | Proven demand, commercial intent, and the current SERP is thin AI-tool blogs — winnable |
+| **Industry + use case** | `jewelry product photography ai` | Lower volume, far higher intent, almost no quality competition |
+| **Problem-aware** | `keep product consistent ai images` | Low volume, but it is the deciding question for our buyer |
+
+`EXCLUDED_KEYWORDS` records terms deliberately *not* targeted and why —
+`ai image generator` is owned by Midjourney, OpenAI, Canva and Adobe, and the
+traffic is hobbyists rather than buyers.
+
+> **Volume and difficulty figures in that file are directional estimates from
+> SERP inspection, not measurements.** Validate them in Google Search Console
+> and a real keyword tool before committing spend.
+
+### What was built
+
+- **16 indexable pages** — 4 marketplace guides + hub, 8 industry guides + hub,
+  home, pricing. All statically rendered.
+- **Structured data** — Organization, WebSite, SoftwareApplication (with the
+  full pricing ladder as Offers), FAQPage, BreadcrumbList, HowTo. Rich results
+  don't lift rankings directly, but they change click-through at the same
+  position.
+- **`sitemap.xml` and `robots.txt`** — generated from config, so new guides
+  appear automatically. App routes are disallowed: they require a session, so
+  crawling them burns budget on redirects.
+- **Canonical URLs, Open Graph and Twitter cards** on every page, with a
+  generated OG image at `/opengraph-image`.
+- **`noindex`** on all authenticated and auth screens.
+- **Internal linking** — footer links every guide; each guide cross-links its
+  siblings.
+
+### Deliberately not done
+
+**Keyword stuffing.** Google's spam policies treat it as a signal *against* a
+page. Each term in `config/seo.ts` maps to exactly one page that earns it.
+
+### Realistic expectations
+
+Long-tail marketplace and industry terms are achievable within a few months
+given consistent publishing and a handful of real backlinks. The head term
+`ai product photography` is a 6–12 month goal at best. Content velocity and
+backlinks — not code — are what move it from there.
+
+## 20. Licensing
 
 This application's own source is yours to license as you choose.
 
