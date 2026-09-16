@@ -10,7 +10,12 @@
     "typecheck": "tsc --noEmit",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "test": "tsx --conditions=react-server scripts/verify-logic.ts && tsx --conditions=react-server scripts/verify-composite.ts",
-    "test:composite": "tsx --conditions=react-server scripts/verify-composite.ts"
+    "test:composite": "tsx --conditions=react-server scripts/verify-composite.ts",
+    "video:studio": "remotion studio video/index.ts",
+    "video:hero": "remotion render video/index.ts HeroDemo out/pixelforge-hero.mp4",
+    "video:social": "remotion render video/index.ts SocialVertical out/pixelforge-social-vertical.mp4",
+    "video:square": "remotion render video/index.ts SocialSquare out/pixelforge-social-square.mp4",
+    "video:all": "npm run video:hero && npm run video:social && npm run video:square"
   },
   "dependencies": {
     "@stripe/stripe-js": "^5.5.0",
