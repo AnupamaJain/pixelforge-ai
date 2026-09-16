@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: #FDFCFB;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #root { width: 100%; height: 100%; position: relative; }
+
+      /* Safe area: platform UI eats the top ~220px and bottom ~340px. */
+      .stage {
+        position: absolute; inset: 0;
+        padding: 260px 70px 360px;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+      }
+
+      .kicker {
+        font-size: 40px; font-weight: 600; color: #6B635C;
+        letter-spacing: -0.01em;
+      }
+      .price {
+        font-size: 230px; font-weight: 800; letter-spacing: -0.055em;
+        line-height: 0.95; font-variant-numeric: tabular-nums;
+        color: #1C1917;
+      }
+      .price.cheap { color: #EA580C; }
+      .strike { position: relative; display: inline-block; }
+      .strike-line {
+        position: absolute; left: -4%; right: -4%; top: 52%;
+        height: 12px; background: #C2452D; border-radius: 6px;
+        transform: scaleX(0); transform-origin: left center;
+      }
+      .sub { font-size: 44px; font-weight: 500; color: #6B635C; margin-top: 26px; }
+
+      .frame {
+        width: 720px; height: 720px; border-radius: 40px; overflow: hidden;
+        position: relative; border: 5px solid #E7E2DC; background: #F2EFEC;
+        box-shadow: 0 30px 70px rgba(28,25,23,0.16);
+      }
+      .frame img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .frame img.product {
+        position: absolute; left: 50%; top: 50%;
+        width: 78%; height: 78%; object-fit: contain;
+        transform: translate(-50%, -50%);
+        filter: drop-shadow(0 22px 42px rgba(0,0,0,0.34));
+      }
+
+      .stamp {
+        position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 30px; border-radius: 999px; background: #E8F5EE;
+        white-space: nowrap;
+      }
+      .stamp span { font-size: 30px; font-weight: 700; color: #2A8F5F; }
+      .dot { width: 26px; height: 26px; border-radius: 50%; background: #2A8F5F;
+             display: grid; place-items: center; color: #fff; font-size: 17px; font-weight: 900; }
+
+      .headline {
+        font-size: 84px; font-weight: 800; letter-spacing: -0.04em;
+        line-height: 1.06; color: #1C1917;
+      }
+      .cta {
+        margin-top: 46px; padding: 30px 74px; border-radius: 22px;
+        background: #EA580C; color: #fff; font-size: 46px; font-weight: 700;
+      }
+      .fine { margin-top: 24px; font-size: 30px; color: #918A82; }
+
+      .brand { display: flex; align-items: center; gap: 18px; }
+      .mark { width: 62px; height: 62px; border-radius: 16px; background: #EA580C; }
+      .brandname { font-size: 50px; font-weight: 800; letter-spacing: -0.03em; color: #1C1917; }
+      .brandname em { font-style: normal; color: #EA580C; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="14"
+         data-width="1080" data-height="1920" data-fps="30">
+
+      <!-- BEAT 1 — the hook, on screen by frame 1 -->
+      <div class="stage clip" id="s1" data-start="0" data-duration="4.5" data-track-index="0">
+        <div class="kicker" id="s1k">A product photoshoot costs</div>
+        <div class="price strike" id="s1p">
+          <span id="s1num">$2,000</span>
+          <span class="strike-line" id="s1line"></span>
+        </div>
+        <div class="sub" id="s1s">…per session. Every season.</div>
+      </div>
+
+      <!-- BEAT 2 — the reversal -->
+      <div class="stage clip" id="s2" data-start="4.5" data-duration="3" data-track-index="0"
+           style="opacity:0">
+        <div class="kicker">This costs</div>
+        <div class="price cheap" id="s2p">$49</div>
+        <div class="sub">a month. Unlimited scenes.</div>
+      </div>
+
+      <!-- BEAT 3 — the proof -->
+      <div class="stage clip" id="s3" data-start="7.5" data-duration="3.5" data-track-index="0"
+           style="opacity:0">
+        <div class="headline" style="font-size:66px; margin-bottom:44px">
+          Your product.<br />Never redrawn.
+        </div>
+        <div class="frame" id="s3frame">
+          <img class="bg" id="s3bg" src="../assets/scene-wood.webp" alt="" />
+          <img class="product" id="s3prod" src="../assets/product-cutout.png" alt="" />
+          <div class="stamp" id="s3stamp">
+            <div class="dot">✓</div><span>0 pixels changed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEAT 4 — CTA -->
+      <div class="stage clip" id="s4" data-start="11" data-duration="3" data-track-index="0"
+           style="opacity:0">
+        <div class="brand" id="s4brand">
+          <div class="mark"></div>
+          <div class="brandname">PixelForge <em>AI</em></div>
+        </div>
+        <div class="headline" style="font-size:72px; margin-top:44px">
+          One photo in.<br />A catalogue out.
+        </div>
+        <div class="cta" id="s4cta">Try it free</div>
+        <div class="fine">30 free credits · No card</div>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // BEAT 1 — hook lands inside the first 12 frames. On a feed, anything
+      // slower than this is scrolled past before it reads.
+      tl.fromTo("#s1k", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.28 }, 0)
+        .fromTo("#s1p", { opacity: 0, scale: 0.86 },
+                { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.16)
+        .fromTo("#s1s", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.55)
+        // Strike-through lands once the number has registered.
+        .to("#s1line", { scaleX: 1, duration: 0.42, ease: "power2.inOut" }, 2.0)
+        .to("#s1", { opacity: 0, duration: 0.25 }, 4.25);
+
+      // BEAT 2 — the reversal, deliberately abrupt.
+      tl.set("#s2", { opacity: 1 }, 4.5)
+        .fromTo("#s2p", { opacity: 0, scale: 1.3 },
+                { opacity: 1, scale: 1, duration: 0.42, ease: "back.out(2.2)" }, 4.5)
+        .fromTo("#s2 .kicker", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 4.5)
+        .fromTo("#s2 .sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3 }, 4.85)
+        .to("#s2", { opacity: 0, duration: 0.25 }, 7.25);
+
+      // BEAT 3 — proof. Scene swaps in behind the product, which never moves.
+      tl.set("#s3", { opacity: 1 }, 7.5)
+        .fromTo("#s3 .headline", { opacity: 0, y: 24 },
+                { opacity: 1, y: 0, duration: 0.35 }, 7.5)
+        .fromTo("#s3frame", { opacity: 0, scale: 0.92 },
+                { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 7.65)
+        .fromTo("#s3bg", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 8.1)
+        .fromTo("#s3stamp", { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, 8.9)
+        .to("#s3", { opacity: 0, duration: 0.25 }, 10.75);
+
+      // BEAT 4 — CTA.
+      tl.set("#s4", { opacity: 1 }, 11)
+        .fromTo("#s4brand", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 11)
+        .fromTo("#s4 .headline", { opacity: 0, y: 24 },
+                { opacity: 1, y: 0, duration: 0.35 }, 11.2)
+        .fromTo("#s4cta", { opacity: 0, scale: 0.9 },
+                { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 11.45)
+        .fromTo("#s4 .fine", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 11.75);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

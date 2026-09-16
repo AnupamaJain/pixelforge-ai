@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden; background: #FDFCFB;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #root { width: 100%; height: 100%; position: relative; }
+      .stage {
+        position: absolute; inset: 0; padding: 250px 70px 350px;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; text-align: center;
+      }
+      .pov {
+        font-size: 66px; font-weight: 800; letter-spacing: -0.035em;
+        line-height: 1.1; color: #1C1917;
+      }
+      .frame {
+        width: 760px; height: 760px; border-radius: 40px; overflow: hidden;
+        position: relative; border: 6px solid #E7E2DC; background: #F2EFEC;
+        margin-top: 50px; box-shadow: 0 30px 70px rgba(28,25,23,0.16);
+      }
+      .frame.bad { border-color: #E9B8B0; }
+      .frame.good { border-color: #EA580C; }
+      .frame img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .frame img.product {
+        position: absolute; left: 50%; top: 50%; width: 76%; height: 76%;
+        object-fit: contain; transform: translate(-50%, -50%);
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.32));
+      }
+      .tag {
+        position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+        padding: 14px 28px; border-radius: 999px; font-size: 30px; font-weight: 700;
+        white-space: nowrap;
+      }
+      .tag.bad { background: #FDF2F0; color: #A43E2C; }
+      .tag.good { background: #E8F5EE; color: #2A8F5F; }
+      .verdict { margin-top: 44px; font-size: 52px; font-weight: 700; letter-spacing: -0.02em; }
+      .verdict.bad { color: #A43E2C; }
+      .verdict.good { color: #2A8F5F; }
+      .cta {
+        margin-top: 44px; padding: 30px 74px; border-radius: 22px;
+        background: #EA580C; color: #fff; font-size: 46px; font-weight: 700;
+      }
+      .fine { margin-top: 24px; font-size: 30px; color: #918A82; }
+      .brand { display: flex; align-items: center; gap: 18px; }
+      .mark { width: 62px; height: 62px; border-radius: 16px; background: #EA580C; }
+      .brandname { font-size: 50px; font-weight: 800; letter-spacing: -0.03em; color: #1C1917; }
+      .brandname em { font-style: normal; color: #EA580C; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="13"
+         data-width="1080" data-height="1920" data-fps="30">
+
+      <!-- BEAT 1 — POV hook + the failure, shown not told -->
+      <div class="stage clip" id="s1" data-start="0" data-duration="5.5" data-track-index="0">
+        <div class="pov" id="s1t">POV: you asked AI<br />for a product photo</div>
+        <div class="frame bad" id="s1frame">
+          <img class="bg" src="../assets/scene-wood.webp" alt="" />
+          <img class="product" id="s1prod" src="../assets/product-cutout.png" alt="" />
+          <div class="tag bad" id="s1tag">Generic AI tool</div>
+        </div>
+        <div class="verdict bad" id="s1v">That's not your product.</div>
+      </div>
+
+      <!-- BEAT 2 — the fix -->
+      <div class="stage clip" id="s2" data-start="5.5" data-duration="4"
+           data-track-index="0" style="opacity:0">
+        <div class="pov">We only generate<br />the background</div>
+        <div class="frame good" id="s2frame">
+          <img class="bg" src="../assets/scene-wood.webp" alt="" />
+          <img class="product" src="../assets/product-cutout.png" alt="" />
+          <div class="tag good" id="s2tag">✓ 0 pixels changed</div>
+        </div>
+        <div class="verdict good" id="s2v">Your exact photo. Every time.</div>
+      </div>
+
+      <!-- BEAT 3 — CTA -->
+      <div class="stage clip" id="s3" data-start="9.5" data-duration="3.5"
+           data-track-index="0" style="opacity:0">
+        <div class="brand" id="s3brand">
+          <div class="mark"></div>
+          <div class="brandname">PixelForge <em>AI</em></div>
+        </div>
+        <div class="pov" style="margin-top:44px">Product photos<br />that stay yours</div>
+        <div class="cta" id="s3cta">Try it free</div>
+        <div class="fine">30 free credits · No card</div>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // BEAT 1 — the distortion is the hook. It ramps so the viewer watches the
+      // product visibly stop being their product.
+      tl.fromTo("#s1t", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.3 }, 0)
+        .fromTo("#s1frame", { opacity: 0, scale: 0.94 },
+                { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 0.18)
+        .fromTo("#s1tag", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.5)
+        .fromTo("#s1prod",
+          { skewX: 0, scaleX: 1, rotation: 0, filter: "hue-rotate(0deg) saturate(1) blur(0px)" },
+          { skewX: 12, scaleX: 1.22, rotation: 3,
+            filter: "hue-rotate(90deg) saturate(3.2) blur(4px)",
+            duration: 1.9, ease: "power2.in" }, 1.1)
+        .fromTo("#s1v", { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, 3.1)
+        .to("#s1", { opacity: 0, duration: 0.25 }, 5.25);
+
+      // BEAT 2 — identical framing, so the only difference the eye catches is
+      // that the product is now correct.
+      tl.set("#s2", { opacity: 1 }, 5.5)
+        .fromTo("#s2 .pov", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.3 }, 5.5)
+        .fromTo("#s2frame", { opacity: 0, scale: 0.94 },
+                { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 5.68)
+        .fromTo("#s2tag", { opacity: 0, scale: 0.8 },
+                { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.4)" }, 6.2)
+        .fromTo("#s2v", { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.35 }, 6.7)
+        .to("#s2", { opacity: 0, duration: 0.25 }, 9.25);
+
+      // BEAT 3 — CTA
+      tl.set("#s3", { opacity: 1 }, 9.5)
+        .fromTo("#s3brand", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 9.5)
+        .fromTo("#s3 .pov", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 9.7)
+        .fromTo("#s3cta", { opacity: 0, scale: 0.9 },
+                { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 9.95)
+        .fromTo("#s3 .fine", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 10.25);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

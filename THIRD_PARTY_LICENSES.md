@@ -174,6 +174,34 @@ the licence: <https://remotion.dev/license>.
 Remotion is a build-time tool. It is not bundled into the deployed web
 application — it only renders the video files.
 
+## 3e. HyperFrames
+
+- **Package:** `hyperframes` (dev dependency)
+- **Licence:** Apache-2.0 — genuinely open source, no seat limits
+- **Upstream:** https://github.com/heygen-com/hyperframes
+
+Used to render the short-form ads in `ads/`. Rendering is entirely local
+(headless Chrome + FFmpeg); the `cloud`, `lambda` and `cloudrun` subcommands
+are optional hosted paths this project does not use, so no data leaves the
+machine.
+
+HyperFrames collects anonymous usage telemetry by default. It is **disabled**
+in this project — re-run `npx hyperframes telemetry disable` if you ever
+re-scaffold.
+
+Note the contrast with Remotion (3d): both render video, but HyperFrames is
+Apache-2.0 with no employee threshold, while Remotion requires a paid company
+licence above three employees. If licence simplicity matters as the team grows,
+prefer HyperFrames.
+
+### Ad creative content
+
+The degraded product shown in `pov-fail` and `three-second-test` is an honest
+depiction of how img2img pipelines fail — the product passes through the model
+and drifts. **No competitor is named, and none may be added.** Naming a company
+beside output you fabricated on their behalf invites both a trademark claim and
+a comparative-advertising complaint.
+
 ## 4. Application dependencies
 
 All are permissively licensed (MIT unless noted):
@@ -193,6 +221,7 @@ All are permissively licensed (MIT unless noted):
 | `clsx`, `tailwind-merge` | MIT |
 | `server-only` | MIT |
 | `remotion` (dev only) | Remotion License — see 3d |
+| `hyperframes` (dev only) | Apache-2.0 — see 3e |
 
 Inter (the UI typeface) is licensed under the SIL Open Font License 1.1 and is
 loaded from Google Fonts.

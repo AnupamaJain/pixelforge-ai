@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" data-resolution="square">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1080px; overflow: hidden; background: #FDFCFB;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #root { width: 100%; height: 100%; position: relative; }
+      .stage {
+        position: absolute; inset: 0; padding: 70px;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; text-align: center;
+      }
+      .q { font-size: 62px; font-weight: 800; letter-spacing: -0.035em;
+           line-height: 1.12; color: #1C1917; }
+      .small { font-size: 32px; color: #6B635C; margin-top: 18px; }
+      .pair { display: flex; gap: 26px; margin-top: 40px; }
+      .card { width: 400px; }
+      .tile {
+        width: 400px; height: 400px; border-radius: 28px; overflow: hidden;
+        position: relative; border: 5px solid #E7E2DC; background: #F2EFEC;
+      }
+      .tile img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .tile img.pr {
+        position: absolute; left: 50%; top: 50%; width: 78%; height: 78%;
+        object-fit: contain; transform: translate(-50%,-50%);
+        filter: drop-shadow(0 14px 26px rgba(0,0,0,0.3));
+      }
+      .label { margin-top: 16px; font-size: 30px; font-weight: 700; }
+      .a .label { color: #6B635C; }
+      .b .label { color: #6B635C; }
+      .reveal { margin-top: 34px; font-size: 46px; font-weight: 800; letter-spacing: -0.02em; }
+      .cta { margin-top: 36px; padding: 24px 58px; border-radius: 18px;
+             background: #EA580C; color: #fff; font-size: 38px; font-weight: 700; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .mark { width: 52px; height: 52px; border-radius: 14px; background: #EA580C; }
+      .bn { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: #1C1917; }
+      .bn em { font-style: normal; color: #EA580C; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="11"
+         data-width="1080" data-height="1080" data-fps="30">
+
+      <!-- BEAT 1 — a question the viewer answers in their head -->
+      <div class="stage clip" id="s1" data-start="0" data-duration="5" data-track-index="0">
+        <div class="q" id="s1q">One of these is<br />the real product photo.</div>
+        <div class="small" id="s1s">Three seconds. Which one?</div>
+        <div class="pair">
+          <div class="card a">
+            <div class="tile" id="tA">
+              <img class="bg" src="../assets/scene-wood.webp" alt="" />
+              <img class="pr" id="prA" src="../assets/product-cutout.png" alt="" />
+            </div>
+            <div class="label">A</div>
+          </div>
+          <div class="card b">
+            <div class="tile" id="tB">
+              <img class="bg" src="../assets/scene-wood.webp" alt="" />
+              <img class="pr" id="prB" src="../assets/product-cutout.png" alt="" />
+            </div>
+            <div class="label">B</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEAT 2 — the answer, and the point -->
+      <div class="stage clip" id="s2" data-start="5" data-duration="3.2"
+           data-track-index="0" style="opacity:0">
+        <div class="q">Both are.<br />Only one kept your product.</div>
+        <div class="small" style="max-width:820px">
+          Generic AI redraws it. We generate only the background and composite
+          your real pixels back.
+        </div>
+      </div>
+
+      <!-- BEAT 3 — CTA -->
+      <div class="stage clip" id="s3" data-start="8.2" data-duration="2.8"
+           data-track-index="0" style="opacity:0">
+        <div class="brand" id="s3b">
+          <div class="mark"></div><div class="bn">PixelForge <em>AI</em></div>
+        </div>
+        <div class="q" style="margin-top:32px; font-size:54px">Never redrawn.<br />Verified every time.</div>
+        <div class="cta" id="s3c">Try it free</div>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // BEAT 1 — A degrades slowly enough that the viewer commits to an answer
+      // before the difference is obvious. That commitment is the hook.
+      tl.fromTo("#s1q", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.3 }, 0)
+        .fromTo("#s1s", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.25)
+        .fromTo(".pair", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.35 }, 0.35)
+        .fromTo("#prA",
+          { skewX: 0, scaleX: 1, filter: "hue-rotate(0deg) saturate(1) blur(0px)" },
+          { skewX: 9, scaleX: 1.16,
+            filter: "hue-rotate(70deg) saturate(2.6) blur(3px)",
+            duration: 2.4, ease: "power2.in" }, 1.4)
+        .to("#tA", { borderColor: "#E9B8B0", duration: 0.4 }, 3.4)
+        .to("#tB", { borderColor: "#EA580C", duration: 0.4 }, 3.4)
+        .to("#s1", { opacity: 0, duration: 0.25 }, 4.75);
+
+      // BEAT 2 — the reframe
+      tl.set("#s2", { opacity: 1 }, 5)
+        .fromTo("#s2 .q", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 5)
+        .fromTo("#s2 .small", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 5.35)
+        .to("#s2", { opacity: 0, duration: 0.25 }, 7.95);
+
+      // BEAT 3 — CTA
+      tl.set("#s3", { opacity: 1 }, 8.2)
+        .fromTo("#s3b", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.32 }, 8.2)
+        .fromTo("#s3 .q", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.32 }, 8.38)
+        .fromTo("#s3c", { opacity: 0, scale: 0.9 },
+                { opacity: 1, scale: 1, duration: 0.38, ease: "back.out(2)" }, 8.6);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

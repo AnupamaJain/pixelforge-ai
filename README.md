@@ -252,9 +252,12 @@ scripts/
   verify-logic.ts      Business-logic test suite
   verify-composite.ts  Pixel-identical guarantee test suite
 video/
-  Root.tsx             Composition registry
+  Root.tsx             Composition registry (Remotion)
   theme.ts             Video tokens, mirroring app/globals.css
   compositions/        HeroDemo, Comparison, SocialVertical, Bumper
+ads/
+  compositions/        HyperFrames HTML ads: cost-shock, pov-fail, three-second-test
+  assets/              Product cutout and backdrops used by the ads
 MESSAGING.md           Positioning, proof stack, objection handling
 ```
 
@@ -956,6 +959,32 @@ the product's real design tokens:
 npm run video:studio   # live preview
 npm run video:all      # render all six
 ```
+
+### Viral ad creatives
+
+Three short-form ads for paid social, in [`ads/`](ads/README.md), built with
+[HyperFrames](https://github.com/heygen-com/hyperframes) (Apache-2.0) — HTML +
+GSAP captured frame-by-frame in headless Chrome.
+
+| File | Format | Length | Hook |
+|---|---|---|---|
+| `viral-cost-shock.mp4` | 1080×1920 | 14s | Money — $2,000 struck through, replaced by $49 |
+| `viral-pov-fail.mp4` | 1080×1920 | 13s | Recognition — "POV: you asked AI for a product photo" |
+| `viral-three-second-test.mp4` | 1080×1080 | 11s | Curiosity — "which one is the real product?" |
+
+```bash
+npm run ads:preview   # studio with scrubbing
+npm run ads:all       # render all three
+```
+
+Three different opening emotions on purpose: one hook fatigues quickly when
+several creatives run against the same audience.
+
+**Two engines, deliberately.** Remotion (`video/`) is React-component
+authoring and suits the longer brand pieces; HyperFrames (`ads/`) is HTML/CSS
+authoring and suits fast creative iteration. HyperFrames is also Apache-2.0
+with no seat limits, where Remotion needs a paid licence above three
+employees.
 
 Rendered files land in `out/`, which is gitignored — they are regenerable
 build artefacts, not source. See **[video/README.md](video/README.md)** for

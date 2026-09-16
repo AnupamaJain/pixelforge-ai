@@ -15,3 +15,8 @@ yarn-error.log*
 next-env.d.ts
 coverage/
 supabase/.temp/
+
+# Rendered video artefacts — regenerate with npm run video:all / ads:all
+ads/renders/
+ads/node_modules/
+ads/.hyperframes/
