@@ -2,6 +2,7 @@ import "server-only";
 
 import { hostedProvider } from "@/providers/hosted";
 import { invokeAIProvider } from "@/providers/invokeai";
+import { localProvider } from "@/providers/local";
 import {
   ProviderError,
   type GenerationResult,
@@ -26,6 +27,9 @@ export {
 const PROVIDERS: Record<string, ImageGenerationProvider> = {
   hosted: hostedProvider,
   invokeai: invokeAIProvider,
+  // Placeholder imagery only, and self-guarded against production. Exists so
+  // the whole pipeline can be exercised without an API key. See providers/local.
+  local: localProvider,
 };
 
 /**

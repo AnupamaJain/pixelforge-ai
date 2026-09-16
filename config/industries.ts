@@ -347,7 +347,7 @@ export const INDUSTRIES: Industry[] = [
         body: "Ceramic glaze and textile weave are what distinguishes a premium item from a cheap one.",
       },
     ],
-    recommendedScenes: ["kitchen-counter", "linen", "marble", "minimal"],
+    recommendedScenes: ["kitchen-counter", "linen", "marble", "studio-gradient"],
     promptExamples: [
       "a stoneware mug — Kitchen Counter",
       "a linen tea towel — Natural Linen",

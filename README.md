@@ -373,6 +373,28 @@ inserts), create the two buckets manually in **Storage → New bucket**, leave
 
 ## 9. AI provider setup
 
+### Mode C — development preview (no key, no GPU)
+
+The fastest way to see the whole thing work:
+
+```bash
+IMAGE_PROVIDER=local
+```
+
+This generates **watermarked placeholder imagery** — no API key, no GPU, no
+cost. It exists so the full pipeline (job queue, credit reservation, storage,
+segmentation, compositing, pixel verification, refund-on-failure) can be
+exercised end to end.
+
+It produces **no real imagery**, every frame is stamped `DEV PREVIEW`, and it
+**refuses to run when `NODE_ENV=production`**. Use it for development, CI and
+demos of the workflow — never to serve a customer.
+
+```bash
+DEV_PROVIDER_LATENCY_MS=350   # simulate engine latency
+DEV_PROVIDER_FAIL_RATE=0.5    # half of runs fail, to watch refunds work
+```
+
 ### Mode A — hosted (recommended to start)
 
 No GPU needed. Get a token from
@@ -695,6 +717,21 @@ directly: credit pricing, dimension resolution and plan caps, style
 composition, and the prompt safety layer — including checks that innocuous
 prompts like *"children playing in a park"* are **not** falsely blocked.
 
+**`scripts/verify-claims.ts` (65 checks)** asserts that every promise the
+marketing pages make still matches the implementation behind it: that industry
+pages reference scenes that exist, that each marketplace guide's export preset
+actually meets the spec that page documents, that "roughly 500 product scenes"
+is arithmetically true, that higher plans never lose a lower plan's features,
+and that the testimonial honesty guard is still armed. This catches the class
+of bug where config drifts and the site quietly starts lying.
+
+**`scripts/verify-pipeline.ts` (33 checks)** runs the real generation
+orchestration against the development provider — provider resolution,
+text-to-image, determinism by seed, image-to-image, upscaling, and the full
+product-scene path from segmentation through compositing to verification. It
+also checks the failure path surfaces a sanitised message and that the dev
+provider refuses to run in production.
+
 **`scripts/verify-composite.ts` (14 checks)** proves the pixel-identical
 guarantee end to end: that segmentation output has a real alpha channel, that
 the generated mask protects the product while leaving the rest paintable, that
@@ -702,7 +739,20 @@ compositing preserves every opaque pixel across several placements and on
 non-square canvases, and — critically — a **negative control** confirming that
 a product which *has* been altered is correctly detected.
 
-Neither suite needs a database, an API key or a network connection.
+None of the four suites needs a database, an API key or a network connection.
+
+### What the tests prove — and what they don't
+
+| Proven by `npm test` | Still needs live credentials |
+|---|---|
+| Generation orchestration end to end | That a hosted provider returns good imagery |
+| Pixel-identical guarantee, incl. negative control | Supabase reads/writes and RLS enforcement |
+| Credit arithmetic and plan gating | Stripe checkout, webhooks and credit grants |
+| Marketing claims match implementation | Email delivery and auth flows |
+| Failure paths sanitise internal detail | |
+
+Run the first column in CI. The second column needs a real Supabase project and
+Stripe test keys — see sections 7 and 11.
 
 ---
 

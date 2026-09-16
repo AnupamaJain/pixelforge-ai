@@ -156,7 +156,8 @@ export const INDUSTRY_KEYWORDS: Keyword[] = [
     term: "cosmetics product photography ai",
     intent: "commercial",
     difficulty: "low",
-    target: "/product-photography/cosmetics",
+    target: "/product-photography/skincare",
+    notes: "Served by the Skincare & Beauty page. Split into its own page only if Search Console shows the terms diverging.",
   },
   {
     term: "home goods product photography",

@@ -50,13 +50,15 @@ export const EXPORT_PRESETS: ExportPreset[] = [
     id: "etsy-listing",
     name: "Etsy — listing",
     group: "marketplace",
-    width: 2000,
-    height: 1600,
+    // Etsy recommends 2000px on the SHORTEST side, so the short edge — not the
+    // long one — has to clear 2000. 5:4 landscape is what search thumbnails crop to.
+    width: 2500,
+    height: 2000,
     fit: "cover",
     background: "#FFFFFF",
     format: "jpeg",
     quality: 90,
-    notes: "Etsy's 5:4 listing ratio.",
+    notes: "5:4 landscape, 2000px on the shortest side as Etsy recommends.",
   },
   {
     id: "ebay-listing",
