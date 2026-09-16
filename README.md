@@ -186,6 +186,7 @@ component or table changes.
 | Subscription state | Written **only** by the signature-verified Stripe webhook |
 | Duplicate webhooks | Stripe event IDs stored as a primary key; grants keyed per billing period |
 | Row access | RLS on every table, scoped to `auth.uid()` |
+| Route gating | `proxy.ts` (Next 16's replacement for `middleware.ts`) refreshes the session and redirects unauthenticated requests before they reach a page |
 | Image access | Private buckets; short-lived signed URLs minted server-side after an ownership check |
 | Uploads | Validated by **magic bytes**, not the declared MIME type |
 | Provider keys | Server-only. No browser code path reaches a provider |
