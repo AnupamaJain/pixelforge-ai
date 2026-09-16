@@ -2,6 +2,8 @@ import React from "react";
 import { Composition } from "remotion";
 
 import { FPS } from "./theme";
+import { Bumper, BUMPER_DURATION } from "./compositions/Bumper";
+import { Comparison, COMPARISON_DURATION } from "./compositions/Comparison";
 import { HeroDemo, HERO_DEMO_DURATION } from "./compositions/HeroDemo";
 import { SocialVertical, SOCIAL_DURATION } from "./compositions/SocialVertical";
 
@@ -37,6 +39,34 @@ export function RemotionRoot() {
         fps={FPS}
         width={1080}
         height={1080}
+      />
+
+      {/* The sharpest USP expression — for paid social and retargeting. */}
+      <Composition
+        id="Comparison"
+        component={Comparison}
+        durationInFrames={COMPARISON_DURATION}
+        fps={FPS}
+        width={1920}
+        height={1080}
+      />
+
+      {/* Six-second bumpers. The same component handles both orientations. */}
+      <Composition
+        id="Bumper"
+        component={Bumper}
+        durationInFrames={BUMPER_DURATION}
+        fps={FPS}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="BumperVertical"
+        component={Bumper}
+        durationInFrames={BUMPER_DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
       />
     </>
   );

@@ -15,7 +15,10 @@
     "video:hero": "remotion render video/index.ts HeroDemo out/pixelforge-hero.mp4",
     "video:social": "remotion render video/index.ts SocialVertical out/pixelforge-social-vertical.mp4",
     "video:square": "remotion render video/index.ts SocialSquare out/pixelforge-social-square.mp4",
-    "video:all": "npm run video:hero && npm run video:social && npm run video:square"
+    "video:all": "npm run video:hero && npm run video:social && npm run video:square && npm run video:comparison && npm run video:bumper && npm run video:bumper-vertical",
+    "video:comparison": "remotion render video/index.ts Comparison out/pixelforge-comparison.mp4",
+    "video:bumper": "remotion render video/index.ts Bumper out/pixelforge-bumper.mp4",
+    "video:bumper-vertical": "remotion render video/index.ts BumperVertical out/pixelforge-bumper-vertical.mp4"
   },
   "dependencies": {
     "@stripe/stripe-js": "^5.5.0",

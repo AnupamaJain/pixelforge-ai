@@ -9,17 +9,30 @@ as React components, so they inherit the product's real design tokens from
 | File | Format | Duration | Use |
 |---|---|---|---|
 | `out/pixelforge-hero.mp4` | 1920×1080 | 24s | Landing page, YouTube, demos |
+| `out/pixelforge-comparison.mp4` | 1920×1080 | 18s | Paid social, retargeting |
 | `out/pixelforge-social-vertical.mp4` | 1080×1920 | 15s | Reels, TikTok, Stories |
 | `out/pixelforge-social-square.mp4` | 1080×1080 | 15s | Feed posts, LinkedIn |
+| `out/pixelforge-bumper.mp4` | 1920×1080 | 6s | YouTube pre-roll |
+| `out/pixelforge-bumper-vertical.mp4` | 1080×1920 | 6s | Story ads, retargeting |
+
+Each targets a different awareness stage:
+
+- **Hero** — problem-unaware. Explains the whole idea.
+- **Comparison** — solution-aware. They've tried generic AI and it failed.
+- **Social** — cold traffic. Hooks on cost, not features.
+- **Bumper** — retargeting. One claim, six seconds, no setup.
 
 ## Commands
 
 ```bash
-npm run video:studio   # live preview + scrubbing
-npm run video:hero     # render the 16:9 demo
-npm run video:social   # render the 9:16 cut
-npm run video:square   # render the 1:1 cut
-npm run video:all      # render everything
+npm run video:studio           # live preview + scrubbing
+npm run video:hero             # 16:9 demo
+npm run video:comparison       # 16:9 side-by-side
+npm run video:social           # 9:16 cut
+npm run video:square           # 1:1 cut
+npm run video:bumper           # 16:9 six-second
+npm run video:bumper-vertical  # 9:16 six-second
+npm run video:all              # everything
 ```
 
 Requires Chrome (Remotion renders through headless Chromium) and ffmpeg, both
@@ -35,8 +48,13 @@ video/
   components/primitives.tsx    FadeUp, PopIn, Badge, Wordmark, GridBackdrop
   compositions/
     HeroDemo.tsx               hook -> problem -> pipeline -> proof -> CTA
+    Comparison.tsx             generic AI vs ours, side by side
     SocialVertical.tsx         cost hook -> proof -> CTA
+    Bumper.tsx                 six seconds; adapts to either orientation
 ```
+
+`Bumper` keys its layout off `useVideoConfig()` rather than assuming
+landscape, so one component serves both the 16:9 and 9:16 renders.
 
 ## The hero edit
 
@@ -59,6 +77,23 @@ track and the palette matches the brand.
 
 Regenerate them by re-running the scripts in git history, or replace the files
 directly — the compositions only reference paths.
+
+## A note on the comparison video
+
+The "Generic AI tools" side shows the product skewed, hue-shifted and blurred.
+That is an honest characterisation of how img2img pipelines fail — the product
+passes through the model and drifts — not a claim about any named competitor.
+The distortion is exaggerated so the failure is legible at thumbnail size.
+
+**Do not** add a competitor's name or logo to this video. Characterising a
+category is fair comment; naming a company and showing invented output of
+theirs is not.
+
+## Script source
+
+All copy comes from [`MESSAGING.md`](../MESSAGING.md) — the positioning
+document. If you change a claim in a video, change it there first, so the site,
+the ads and the videos don't drift apart.
 
 ## Before publishing
 

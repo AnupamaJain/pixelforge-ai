@@ -35,7 +35,8 @@ Built to be **run locally first**, then deployed.
 17. [Deployment](#17-deployment)
 18. [Troubleshooting](#18-troubleshooting)
 19. [SEO](#19-seo)
-20. [Licensing](#20-licensing)
+20. [Positioning & marketing assets](#20-positioning--marketing-assets)
+21. [Licensing](#21-licensing)
 
 ---
 
@@ -109,10 +110,11 @@ Because step 4 happens in our code rather than in a prompt, the guarantee holds
 for any provider. `npm run test:composite` proves it — including a negative
 control that confirms a *modified* product is detected.
 
-> **Product Studio requires `IMAGE_PROVIDER=hosted`.** InvokeAI ships the
-> building blocks (`grounding_dino` → `segment_anything` →
-> `apply_tensor_mask_to_image`) but that graph is not wired up, so the InvokeAI
-> provider reports `productScenes: false` rather than failing at runtime.
+> **Product Studio works on both providers.** The hosted provider uses a
+> dedicated background-removal model; InvokeAI uses a Grounded-SAM chain
+> (`grounding_dino` → `segment_anything` → `apply_tensor_mask_to_image`). On
+> InvokeAI those two models download on first use, so the first product scene
+> is slower than subsequent ones.
 
 ---
 
@@ -193,12 +195,13 @@ component or table changes.
 
 ## 3. Technology stack
 
-- **Next.js 15** (App Router) · **React 19** · **TypeScript** (strict)
+- **Next.js 16** (App Router) · **React 19** · **TypeScript** (strict)
 - **Tailwind CSS v4** with CSS-variable design tokens
 - **Supabase** — Postgres, Auth, Storage
 - **Stripe** — subscriptions (test mode by default)
 - **zod** — server-side validation
-- **sharp** — image measurement and format conversion
+- **sharp** — segmentation compositing, format conversion, export rendering
+- **Remotion** — marketing videos authored as React components
 
 ---
 
@@ -247,6 +250,11 @@ supabase/migrations/
 scripts/
   verify-logic.ts      Business-logic test suite
   verify-composite.ts  Pixel-identical guarantee test suite
+video/
+  Root.tsx             Composition registry
+  theme.ts             Video tokens, mirroring app/globals.css
+  compositions/        HeroDemo, Comparison, SocialVertical, Bumper
+MESSAGING.md           Positioning, proof stack, objection handling
 ```
 
 ---
@@ -254,6 +262,7 @@ scripts/
 ## 5. Prerequisites
 
 - **Node.js 20+** (22 recommended) and npm
+- **ffmpeg + Chrome** — only if you want to render the marketing videos
 - A **Supabase** account (free tier is sufficient)
 - A **Stripe** account (test mode)
 - One of:
@@ -434,6 +443,15 @@ Open InvokeAI's UI → **Model Manager** → install an **SDXL** checkpoint.
 For upscaling, InvokeAI downloads the Real-ESRGAN weights on first use
 (`RealESRGAN_x2plus.pth` for 2×, `RealESRGAN_x4plus.pth` for 4×).
 
+For **Product Studio**, background removal runs a Grounded-SAM chain. InvokeAI
+downloads Grounding DINO and Segment Anything on first use, so the first
+product scene takes noticeably longer than later ones. Tune detection with:
+
+```bash
+INVOKEAI_SEGMENT_PROMPT="the main product object"   # noun phrase for detection
+INVOKEAI_DINO_MODEL=grounding-dino-base             # or grounding-dino-tiny
+```
+
 ### Verify the connection
 
 ```bash
@@ -451,6 +469,13 @@ curl http://localhost:3000/api/health | jq .provider
 | Submit a graph | `POST /api/v1/queue/{queue_id}/enqueue_batch` |
 | Poll for completion | `GET /api/v1/queue/{queue_id}/i/{item_id}` |
 | Download the result | `GET /api/v1/images/i/{image_name}/full` |
+| Resolve a model | `GET /api/v2/models/?model_type=main` |
+
+Graphs are built in [`providers/invokeai/graphs.ts`](providers/invokeai/graphs.ts)
+from node types verified against the InvokeAI source: `sdxl_model_loader`,
+`sdxl_compel_prompt`, `noise`, `denoise_latents`, `l2i`, `i2l`, `img_resize`,
+`esrgan`, `grounding_dino`, `segment_anything` and
+`apply_tensor_mask_to_image`.
 
 **⚠️ Before charging money, read [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).**
 Model weights carry their own licences, and at least one model shipped through
@@ -581,6 +606,8 @@ See [`.env.example`](.env.example) for the annotated master list.
 | `INVOKEAI_BASE_URL` | B |
 | `INVOKEAI_API_KEY` | B (if secured) |
 | `INVOKEAI_MODEL_KEY` | B (optional) |
+| `INVOKEAI_SEGMENT_PROMPT` | B (optional, Product Studio) |
+| `INVOKEAI_DINO_MODEL` | B (optional, Product Studio) |
 
 ### Stripe
 
@@ -656,10 +683,11 @@ stop InvokeAI), then generate. The job should end **FAILED**, you should see
 ## 15. Testing
 
 ```bash
-npm run typecheck      # strict TypeScript across the whole project
-npm test               # both suites below
+npm run typecheck       # strict TypeScript across the whole project
+npm test                # both suites below (53 checks)
 npm run test:composite  # pixel-identical guarantee only
-npm run build          # full production build
+npm run build           # full production build
+npm audit               # currently reports 0 vulnerabilities
 ```
 
 **`scripts/verify-logic.ts` (39 checks)** covers the rules users feel most
@@ -839,7 +867,51 @@ given consistent publishing and a handful of real backlinks. The head term
 `ai product photography` is a 6–12 month goal at best. Content velocity and
 backlinks — not code — are what move it from there.
 
-## 20. Licensing
+## 20. Positioning & marketing assets
+
+### The USP
+
+> **We never generate your product. We generate the scene around it, then put
+> your real pixels back — and check that not one of them changed.**
+
+This is the only claim in the product that a competitor cannot copy without
+re-architecting. Generic tools run img2img pipelines where the product *is*
+model output; here it is composited from the customer's own file and verified
+afterwards.
+
+Full positioning — problem framing, proof stack, headline variants, objection
+handling, audience angles, and an explicit list of claims we do **not** make —
+lives in **[MESSAGING.md](MESSAGING.md)**.
+
+> Treat `MESSAGING.md` as the source of truth. If a claim changes, change it
+> there first, then propagate to the site, the ads and the videos. That is how
+> you stop channels drifting apart.
+
+### Marketing videos
+
+Six rendered videos, built with Remotion as React components so they inherit
+the product's real design tokens:
+
+| File | Format | Length | Awareness stage |
+|---|---|---|---|
+| `pixelforge-hero.mp4` | 1920×1080 | 24s | Problem-unaware |
+| `pixelforge-comparison.mp4` | 1920×1080 | 18s | Solution-aware |
+| `pixelforge-social-vertical.mp4` | 1080×1920 | 15s | Cold traffic |
+| `pixelforge-social-square.mp4` | 1080×1080 | 15s | Cold traffic |
+| `pixelforge-bumper.mp4` | 1920×1080 | 6s | Retargeting |
+| `pixelforge-bumper-vertical.mp4` | 1080×1920 | 6s | Retargeting |
+
+```bash
+npm run video:studio   # live preview
+npm run video:all      # render all six
+```
+
+Rendered files land in `out/`, which is gitignored — they are regenerable
+build artefacts, not source. See **[video/README.md](video/README.md)** for
+the edit breakdown and what to handle before publishing (real generations,
+licensed music, captions).
+
+## 21. Licensing
 
 This application's own source is yours to license as you choose.
 

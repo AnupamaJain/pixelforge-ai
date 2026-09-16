@@ -134,6 +134,46 @@ Publishing fabricated testimonials or reviews is unlawful under:
 Only publish quotes you actually received, with written permission, and record
 the consent date on the entry.
 
+## 3c. Marketing video assets
+
+The videos in `out/` are rendered from React components in `video/`. Their
+assets are deliberately free of third-party licensing:
+
+- **Backdrops** (`scene-studio`, `scene-wood`, `marble`) are generated
+  procedurally from SVG gradients. No stock licence applies.
+- **`product-cutout.png`** is derived from an Unsplash photograph (Unsplash
+  License — free for commercial use) by luminance-thresholding the background
+  to transparency.
+- **No audio track is included.** If you add music, license it for commercial
+  use. Unlicensed audio is the most common way a marketing video attracts a
+  copyright claim, and platform claims apply even to paid ads.
+
+### The comparison video
+
+`pixelforge-comparison.mp4` contrasts "Generic AI tools" against ours. The
+degraded side is an honest characterisation of how img2img pipelines fail —
+the product passes through the model and drifts — and names no company.
+
+**Do not add a competitor's name or logo to it.** Characterising a category is
+fair comment in most jurisdictions; naming a company alongside fabricated
+output attributed to them is not, and invites both a trademark claim and a
+comparative-advertising complaint.
+
+## 3d. Remotion
+
+- **Package:** `remotion`, `@remotion/cli`, `@remotion/bundler`, `@remotion/renderer`
+- **Licence:** Remotion License (source-available, **not** OSI open source)
+
+> ⚠️ **Remotion is free for individuals and for companies with fewer than four
+> employees. Beyond that it requires a paid company licence.**
+
+This is unusual among the dependencies here and easy to miss, because it
+installs from npm like anything else. If your team grows past three people, buy
+the licence: <https://remotion.dev/license>.
+
+Remotion is a build-time tool. It is not bundled into the deployed web
+application — it only renders the video files.
+
 ## 4. Application dependencies
 
 All are permissively licensed (MIT unless noted):
@@ -152,6 +192,7 @@ All are permissively licensed (MIT unless noted):
 | `class-variance-authority` | Apache-2.0 |
 | `clsx`, `tailwind-merge` | MIT |
 | `server-only` | MIT |
+| `remotion` (dev only) | Remotion License — see 3d |
 
 Inter (the UI typeface) is licensed under the SIL Open Font License 1.1 and is
 loaded from Google Fonts.
@@ -176,3 +217,6 @@ Before charging customers:
 4. **Publish a privacy policy** covering generated images and prompt storage.
 5. **Keep this file current** as you add dependencies or swap providers.
 6. **Do not imply affiliation** with Invoke, Stability AI, NVIDIA or Replicate.
+7. **Check your Remotion licence** if the team is four people or more.
+8. **License any music** added to the marketing videos for commercial use.
+9. **Replace the placeholder showcase imagery and testimonials** — see 3a and 3b.
