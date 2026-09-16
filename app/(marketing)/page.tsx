@@ -13,7 +13,8 @@ import {
   PricingSection,
   Scenes,
 } from "@/components/marketing/sections";
-import { Testimonials } from "@/components/marketing/testimonials";
+import { PlatformStrip } from "@/components/marketing/platform-strip";
+import { ReviewWall } from "@/components/marketing/review-wall";
 import { JsonLd } from "@/components/seo/json-ld";
 import { HOME_FAQS } from "@/components/marketing/sections";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -31,6 +32,7 @@ export default function LandingPage() {
     <>
       <JsonLd data={faqSchema(HOME_FAQS)} />
       <Hero />
+      <PlatformStrip />
       <PixelIdentical />
       <Playground />
       <Scenes />
@@ -38,7 +40,7 @@ export default function LandingPage() {
       <MarketplaceExport />
       <GallerySection />
       <HowItWorks />
-      <Testimonials />
+      <ReviewWall />
       <PricingSection />
       <Faq />
       <FinalCta />

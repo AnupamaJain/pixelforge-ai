@@ -25,8 +25,8 @@ import {
 import { SCENE_PRESETS } from "@/config/scenes";
 import { EXPORT_PRESETS } from "@/config/marketplace";
 import { CompareSlider } from "./simulators/compare-slider";
-import { CostCalculator } from "./simulators/cost-calculator";
 import { StylePlayground } from "./simulators/style-playground";
+import { PricingCalculator } from "./pricing-calculator";
 
 /** Shown while the page still uses stock placeholders. See config/showcase.ts. */
 function SampleImageryNote({ className }: { className?: string }) {
@@ -44,10 +44,17 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40 mask-fade-b" />
       <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pb-24 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
-          <Badge variant="accent" className="animate-fade">
-            <ShieldCheck aria-hidden="true" className="size-3" />
-            Your product, pixel-identical, in every scene
-          </Badge>
+          {/* Trust row. Every claim here is verifiable in the codebase —
+              no review-platform badge until we have real reviews. */}
+          <div className="flex animate-fade flex-wrap items-center justify-center gap-2">
+            <Badge variant="accent">
+              <ShieldCheck aria-hidden="true" className="size-3" />
+              Pixel-identical, verified on every generation
+            </Badge>
+            <Badge variant="outline">
+              {SCENE_PRESETS.length} scenes · {EXPORT_PRESETS.length} export presets
+            </Badge>
+          </div>
 
           <h1 className="mt-6 animate-in-up text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
             Product photography without the photoshoot
@@ -67,7 +74,7 @@ export function Hero() {
           >
             <Link href="/signup" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto">
-                Start creating
+                Start creating free
               </Button>
             </Link>
             <Link href="#playground" className="w-full sm:w-auto">
@@ -77,12 +84,23 @@ export function Hero() {
             </Link>
           </div>
 
-          <p
-            className="mt-4 animate-in-up text-xs text-fg-subtle"
+          <ul
+            className="mt-5 flex animate-in-up flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-fg-subtle"
             style={{ animationDelay: "240ms" }}
           >
-            {PLANS.FREE.monthlyCredits} free credits every month · No card required
-          </p>
+            <li className="flex items-center gap-1.5">
+              <Check aria-hidden="true" className="size-3 text-accent" />
+              {PLANS.FREE.monthlyCredits} free credits monthly
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Check aria-hidden="true" className="size-3 text-accent" />
+              No card required
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Check aria-hidden="true" className="size-3 text-accent" />
+              Failed runs always refunded
+            </li>
+          </ul>
         </div>
 
         <div
@@ -486,7 +504,15 @@ export function PricingSection({ compact = false }: { compact?: boolean }) {
           </div>
         ) : null}
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12">
+          <PricingCalculator />
+        </div>
+
+        <h3 className="mt-16 text-center text-sm font-semibold text-fg-subtle">
+          All plans
+        </h3>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLAN_ORDER.map((planId) => {
             const plan = PLANS[planId];
             const featured = planId === "GROWTH";
@@ -541,9 +567,6 @@ export function PricingSection({ compact = false }: { compact?: boolean }) {
           })}
         </div>
 
-        <div className="mx-auto mt-10 max-w-xl">
-          <CostCalculator />
-        </div>
       </div>
     </section>
   );

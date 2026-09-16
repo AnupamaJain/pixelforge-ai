@@ -22,19 +22,23 @@
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
     "sharp": "^0.33.5",
     "stripe": "^17.5.0",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.24.1",
-    "server-only": "^0.0.1"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@remotion/bundler": "^4.0.525",
+    "@remotion/cli": "^4.0.525",
+    "@remotion/renderer": "^4.0.525",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "remotion": "^4.0.525",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.3",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
   }
 }
