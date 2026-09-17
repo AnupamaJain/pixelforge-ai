@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
+  { href: "/#see-it-work", label: "See it work" },
   { href: "/#features", label: "Features" },
   { href: "/product-photography", label: "By category" },
   { href: "/marketplace-image-requirements", label: "Image specs" },

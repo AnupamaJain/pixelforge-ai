@@ -126,3 +126,29 @@ export const GALLERY_SHOWCASE: ShowcaseImage[] = [
   { src: `${base}/minimal-desk.webp`, alt: "Minimal desk still life" },
   { src: `${base}/cinematic-fog.webp`, alt: "Foggy cinematic landscape" },
 ];
+
+/**
+ * Backdrop textures for the 3D stage, keyed by scene id.
+ *
+ * Scenes without a bespoke texture fall back to the studio sweep, so adding a
+ * scene to config/scenes.ts never leaves the 3D view showing the wrong
+ * environment for the scene the visitor selected.
+ */
+export const SCENE_TEXTURES: Record<string, string> = {
+  "studio-white": `${base}/scene-studio.webp`,
+  "studio-gradient": `${base}/scene-studio.webp`,
+  marble: `${base}/marble.webp`,
+  linen: `${base}/linen-cloth.webp`,
+  concrete: `${base}/architecture-white.webp`,
+  "kitchen-counter": `${base}/scene-wood.webp`,
+  "bathroom-shelf": `${base}/minimal-still.webp`,
+  "desk-workspace": `${base}/minimal-desk.webp`,
+  "outdoor-nature": `${base}/nature-forest.webp`,
+  "beach-summer": `${base}/landscape-mountain.webp`,
+  "festive-winter": `${base}/cinematic-moody.webp`,
+  "autumn-warm": `${base}/scene-wood.webp`,
+};
+
+export function sceneTexture(sceneId: string): string {
+  return SCENE_TEXTURES[sceneId] ?? `${base}/scene-studio.webp`;
+}

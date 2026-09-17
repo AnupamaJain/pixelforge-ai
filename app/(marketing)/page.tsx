@@ -14,6 +14,7 @@ import {
   Scenes,
 } from "@/components/marketing/sections";
 import { PlatformStrip } from "@/components/marketing/platform-strip";
+import { RuntimeShowcase } from "@/components/marketing/runtime-showcase";
 import { ReviewWall } from "@/components/marketing/review-wall";
 import { JsonLd } from "@/components/seo/json-ld";
 import { HOME_FAQS } from "@/components/marketing/sections";
@@ -34,6 +35,7 @@ export default function LandingPage() {
       <Hero />
       <PlatformStrip />
       <PixelIdentical />
+      <RuntimeShowcase />
       <Playground />
       <Scenes />
       <Capabilities />
