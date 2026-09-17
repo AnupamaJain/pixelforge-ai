@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   Check,
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { PLAN_ORDER, PLANS, formatPrice } from "@/config/plans";
 import { CREDIT_COSTS } from "@/config/credits";
 import {
+  APP_SCREENS,
   GALLERY_SHOWCASE,
   HERO_SHOWCASE,
   STYLE_SHOWCASE,
@@ -22,6 +22,7 @@ import {
   UPSCALE_SHOWCASE,
   isPlaceholderShowcase,
 } from "@/config/showcase";
+import { ClickableImage } from "./lightbox";
 import { SCENE_PRESETS } from "@/config/scenes";
 import { EXPORT_PRESETS } from "@/config/marketplace";
 import { CompareSlider } from "./simulators/compare-slider";
@@ -109,20 +110,15 @@ export function Hero() {
         >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {HERO_SHOWCASE.map((image, index) => (
-              <div
+              <ClickableImage
                 key={image.src}
-                className="relative aspect-[4/5] overflow-hidden rounded-[--radius-md] border border-border"
-                style={{ animationDelay: `${360 + index * 60}ms` }}
-              >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                  priority={index < 2}
-                  className="object-cover"
-                />
-              </div>
+                src={image.src}
+                alt={image.alt}
+                priority={index < 2}
+                sizes="(max-width: 640px) 50vw, 25vw"
+                className="aspect-[4/5]"
+                imgClassName="size-full object-cover"
+              />
             ))}
           </div>
           <SampleImageryNote />
@@ -231,15 +227,14 @@ export function Scenes() {
               key={scene.id}
               className="group overflow-hidden rounded-[--radius-md] border border-border bg-surface transition-colors hover:border-accent"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={styleImages[index % styleImages.length].src}
-                  alt={styleImages[index % styleImages.length].alt}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
+              <ClickableImage
+                src={styleImages[index % styleImages.length].src}
+                alt={`${scene.name} — ${styleImages[index % styleImages.length].alt}`}
+                caption={scene.description}
+                sizes="(max-width: 640px) 50vw, 25vw"
+                className="aspect-[4/3] rounded-none border-0"
+                imgClassName="size-full object-cover"
+              />
               <div className="p-3">
                 <p className="text-[13px] font-medium text-fg">{scene.name}</p>
                 <p className="mt-0.5 line-clamp-2 text-xs text-fg-subtle">
@@ -367,16 +362,13 @@ export function MarketplaceExport() {
           </div>
 
           <div className="lg:order-1">
-            <div className="relative overflow-hidden rounded-[--radius-lg] border border-border">
-              <Image
-                src={TRANSFORM_SHOWCASE.after.src}
-                alt={TRANSFORM_SHOWCASE.after.alt}
-                width={900}
-                height={900}
-                sizes="(max-width: 1024px) 100vw, 32rem"
-                className="aspect-square w-full object-cover"
-              />
-            </div>
+            <ClickableImage
+              src={TRANSFORM_SHOWCASE.after.src}
+              alt={TRANSFORM_SHOWCASE.after.alt}
+              sizes="(max-width: 1024px) 100vw, 32rem"
+              className="aspect-square"
+              imgClassName="size-full object-cover"
+            />
             <SampleImageryNote />
           </div>
         </div>
@@ -405,17 +397,13 @@ export function GallerySection() {
 
         <div className="mt-10 columns-2 gap-3 sm:columns-3 lg:columns-4 [&>*]:mb-3">
           {GALLERY_SHOWCASE.map((image, index) => (
-            <div
-              key={image.src}
-              className="relative overflow-hidden rounded-[--radius-md] border border-border"
-              style={{ aspectRatio: index % 3 === 1 ? "3/4" : index % 3 === 2 ? "4/3" : "1/1" }}
-            >
-              <Image
+            <div key={image.src} className="break-inside-avoid">
+              <ClickableImage
                 src={image.src}
                 alt={image.alt}
-                fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover"
+                imgClassName="w-full object-cover"
+                className=""
               />
             </div>
           ))}
@@ -430,22 +418,26 @@ const STEPS = [
   {
     Icon: Package,
     title: "Upload your product",
-    body: "One photo on any background. We cut it out automatically.",
-  },
-  {
-    Icon: Sparkles,
-    title: "Pick a scene",
-    body: "Studio, marble, kitchen, seasonal — or run all of them at once.",
+    body: "One photo on any background. It is segmented automatically, and the panel on the right states the guarantee before you spend anything.",
+    screen: "studio" as const,
   },
   {
     Icon: ShieldCheck,
     title: "We build around it",
-    body: "The scene is generated, your product is composited back, every pixel verified.",
+    body: "The scene is generated, your original pixels are composited back on top, and every opaque pixel is compared against your upload.",
+    screen: "pipeline" as const,
   },
   {
     Icon: Rows3,
-    title: "Export and list",
-    body: "Marketplace-ready sizes, or full-resolution originals.",
+    title: "Run the whole catalogue",
+    body: "Paste a spreadsheet. Columns are detected, the template is previewed against row one, and the cost is priced before the run starts.",
+    screen: "batch" as const,
+  },
+  {
+    Icon: Sparkles,
+    title: "Track what you've made",
+    body: "Credits, usage and every generation in one place, with the full metadata attached to each image.",
+    screen: "dashboard" as const,
   },
 ];
 
@@ -453,29 +445,60 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="border-b border-border py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="max-w-2xl">
+        <div className="mx-auto max-w-2xl text-center">
           <span className="text-[13px] font-medium text-accent">How it works</span>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
             One photo in, a catalogue out
           </h2>
+          <p className="mt-4 leading-relaxed text-fg-muted">
+            These are screenshots of the actual application — real interface,
+            real credit balances, real parsed input. Click any of them to look
+            closer.
+          </p>
         </div>
 
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, index) => (
-            <li key={step.title}>
-              <div className="flex size-9 items-center justify-center rounded-[--radius-sm] border border-border bg-surface text-accent">
-                <step.Icon aria-hidden="true" className="size-4" />
-              </div>
-              <p className="mt-4 text-xs font-medium tabular-nums text-fg-subtle">
-                Step {index + 1}
-              </p>
-              <h3 className="mt-1 text-[15px] font-semibold">{step.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">
-                {step.body}
-              </p>
-            </li>
-          ))}
+        <ol className="mt-12 space-y-14">
+          {STEPS.map((step, index) => {
+            const screen = APP_SCREENS[step.screen];
+            const reversed = index % 2 === 1;
+            return (
+              <li
+                key={step.title}
+                className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14"
+              >
+                <div className={reversed ? "lg:order-2" : undefined}>
+                  <div className="flex items-center gap-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-[--radius-sm] bg-accent-soft text-accent">
+                      <step.Icon aria-hidden="true" className="size-4" />
+                    </span>
+                    <span className="text-xs font-medium tabular-nums text-fg-subtle">
+                      Step {index + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold tracking-tight sm:text-2xl">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2.5 leading-relaxed text-fg-muted">{step.body}</p>
+                </div>
+
+                <div className={reversed ? "lg:order-1" : undefined}>
+                  <ClickableImage
+                    src={screen.src}
+                    alt={screen.alt}
+                    caption={`${step.title} — captured from the running application`}
+                    sizes="(max-width: 1024px) 100vw, 32rem"
+                  />
+                </div>
+              </li>
+            );
+          })}
         </ol>
+
+        <p className="mt-10 text-center text-[11px] text-fg-subtle">
+          Screenshots are from a real session. Generated output shown inside the
+          app carries a development watermark until an image provider is
+          configured.
+        </p>
       </div>
     </section>
   );

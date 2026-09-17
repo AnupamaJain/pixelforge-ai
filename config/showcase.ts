@@ -152,3 +152,32 @@ export const SCENE_TEXTURES: Record<string, string> = {
 export function sceneTexture(sceneId: string): string {
   return SCENE_TEXTURES[sceneId] ?? `${base}/scene-studio.webp`;
 }
+
+/**
+ * Real application screenshots.
+ *
+ * Unlike everything else in this file, these ARE genuine — captured from the
+ * running application driving a real account against the live database. They
+ * show the actual interface, real credit balances and real parsed input.
+ *
+ * Regenerate by running the app locally, signing in, and screenshotting; the
+ * crops live in the commit that added them.
+ */
+export const APP_SCREENS = {
+  studio: {
+    src: `${base}/app/studio.webp`,
+    alt: "Product Studio: an uploaded product photo, scene picker and the guarantee that the product is never redrawn",
+  },
+  batch: {
+    src: `${base}/app/batch.webp`,
+    alt: "Batch: a pasted spreadsheet parsed into columns and rows, with the prompt template previewed and the credit cost calculated",
+  },
+  dashboard: {
+    src: `${base}/app/dashboard.webp`,
+    alt: "Dashboard: credit balance, plan, usage statistics and quick actions",
+  },
+  pipeline: {
+    src: `${base}/app/pipeline.webp`,
+    alt: "The generation pipeline running: upload, segment, generate scene, composite, verify",
+  },
+} satisfies Record<string, ShowcaseImage>;
