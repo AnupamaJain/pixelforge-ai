@@ -6,6 +6,10 @@
 
 -- ---------------------------------------------------------------------------
 -- Bootstrap a new auth user: profile + balance + subscription + starting grant
+--
+-- NOTE: the 50-credit default here is superseded by 0007, which aligns it with
+-- FREE_MONTHLY_CREDITS in config/plans.ts. Kept as-is so the migration history
+-- stays truthful about what ran.
 -- ---------------------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
