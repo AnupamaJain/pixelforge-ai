@@ -921,6 +921,70 @@ given consistent publishing and a handful of real backlinks. The head term
 `ai product photography` is a 6–12 month goal at best. Content velocity and
 backlinks — not code — are what move it from there.
 
+## 19a. Shopify app
+
+The App Store is the highest-intent acquisition channel (see
+[GTM.md](GTM.md) §4.1): merchants arrive already trying to solve product
+photography.
+
+### What is built
+
+| Route | Purpose |
+|---|---|
+| `GET /api/shopify/install` | Starts OAuth. Validates the shop domain before redirecting — without that check it is an open redirect |
+| `GET /api/shopify/callback` | Verifies query HMAC, then OAuth state, then exchanges the code. Registers webhooks on success |
+| `POST /api/shopify/webhooks` | `app/uninstalled` plus the three mandatory compliance topics |
+| `GET /api/shopify/products` | Lists the catalogue for the embedded app |
+| `POST /api/shopify/publish` | Pushes a generated image onto a product |
+| `/shopify` | Embedded App Bridge UI |
+
+### Security
+
+Every inbound Shopify request is attacker-reachable — anyone can POST to a
+webhook URL or craft an OAuth callback. The signature is the only thing
+separating real from forged, so:
+
+- Query HMAC is verified **before** any parameter is trusted
+- Webhook HMAC is computed over the **raw** body; parsing first changes the
+  bytes and invalidates it
+- Session tokens are verified HS256 against the app secret, with the algorithm
+  fixed rather than read from the token — that closes algorithm confusion
+- All digest comparisons are `timingSafeEqual`
+- The shop is taken from the **verified session token**, never a query
+  parameter, or one merchant could read another's catalogue
+- Shop domains are matched against Shopify's format before being used to build
+  any URL
+
+`npm run test:shopify` covers 29 cases, weighted toward the negatives: tampered
+params, forged and expired state, re-serialised webhook bodies, `alg:none`,
+and shop-domain spoofing.
+
+### Two constraints worth knowing
+
+1. **Billing must go through Shopify.** App Store apps may not charge via
+   Stripe, so a Shopify install bills separately from a web subscription.
+   `config/shopify.ts` mirrors the plan prices for that path.
+2. **The compliance webhooks are mandatory.** An app without
+   `customers/data_request`, `customers/redact` and `shop/redact` is rejected
+   at review even if it stores no customer data. All three are implemented and
+   logged to `shopify_compliance_events`.
+
+### Setup
+
+```bash
+SHOPIFY_API_KEY=...        # Partner dashboard → your app → API credentials
+SHOPIFY_API_SECRET=...
+SHOPIFY_APP_URL=https://your-domain.com
+```
+
+Then install against a development store:
+
+```
+https://your-domain.com/api/shopify/install?shop=your-dev-store.myshopify.com
+```
+
+Migration `0008_shopify.sql` must be applied first.
+
 ## 20. Positioning & marketing assets
 
 ### The USP

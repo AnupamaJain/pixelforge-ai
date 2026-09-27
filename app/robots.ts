@@ -32,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
           "/forgot-password",
           "/reset-password",
           "/auth/",
+          "/shopify",
         ],
       },
     ],

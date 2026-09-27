@@ -12,8 +12,10 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except static assets, images and the Stripe webhook
-    // (which authenticates by signature, not by a session cookie).
-    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // Everything except static assets, images, the Stripe webhook and the
+    // Shopify surface. Those authenticate by HMAC or App Bridge session token
+    // rather than by cookie, and Shopify pages render inside an admin iframe
+    // where a redirect to /login would break the embed.
+    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/shopify|shopify|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
