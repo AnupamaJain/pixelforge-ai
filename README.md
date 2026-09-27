@@ -937,6 +937,24 @@ Full positioning — problem framing, proof stack, headline variants, objection
 handling, audience angles, and an explicit list of claims we do **not** make —
 lives in **[MESSAGING.md](MESSAGING.md)**.
 
+The commercial plan — unit economics, CAC ceilings, channel ranking, the first
+ten customers and a ninety-day sequence — lives in **[GTM.md](GTM.md)**.
+
+### Unit economics at a glance
+
+A product scene costs **$0.006–$0.015** to serve (background removal + SDXL +
+storage), which puts gross margin at **94–98%** even if a customer burns their
+entire monthly allowance:
+
+| Plan | Price | Scenes | COGS at full use | Margin | LTV @6% churn | Max CAC |
+|---|---|---|---|---|---|---|
+| Starter | $49 | 120 | $0.72–$1.80 | 96–98% | $791 | $264 |
+| Growth | $149 | 500 | $3.00–$7.50 | 95–98% | $2,406 | $802 |
+| Agency | $499 | 2,000 | $12–$30 | 94–98% | $8,059 | $2,686 |
+
+Free-tier exposure is **$0.12 per user per month** — product scenes are gated
+behind a paid plan, so Free can only spend credits on text-to-image.
+
 > Treat `MESSAGING.md` as the source of truth. If a claim changes, change it
 > there first, then propagate to the site, the ads and the videos. That is how
 > you stop channels drifting apart.
