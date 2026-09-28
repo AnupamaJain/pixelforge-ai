@@ -22,6 +22,13 @@ export interface Placement {
   offsetY: number;
 }
 
+/**
+ * Minimum share of visible product pixels that must be fully opaque for the
+ * guarantee to mean anything. Below this the check is reported as vacuous
+ * rather than passing.
+ */
+export const MIN_COVERAGE = 0.5;
+
 export const DEFAULT_PLACEMENT: Placement = {
   scale: 0.72,
   offsetX: 0.5,
@@ -221,7 +228,15 @@ export async function verifyProductPreserved(params: {
   width: number;
   height: number;
   placement?: Placement;
-}): Promise<{ preserved: boolean; checkedPixels: number; mismatches: number }> {
+}): Promise<{
+  preserved: boolean;
+  checkedPixels: number;
+  mismatches: number;
+  /** Share of visible product pixels that were actually compared, 0..1. */
+  coverage: number;
+  /** True when so little was checked that "preserved" means nothing. */
+  vacuous: boolean;
+}> {
   const sharp = await sharpLib();
   const placement = params.placement ?? DEFAULT_PLACEMENT;
   const box = await layout(params.cutout, params.width, params.height, placement);
@@ -242,9 +257,15 @@ export async function verifyProductPreserved(params: {
 
   let checked = 0;
   let mismatches = 0;
+  // Anything meaningfully visible counts toward coverage, so a mask that is
+  // opaque-ish everywhere but never exactly 255 is detectable.
+  let visible = 0;
 
   for (let i = 0; i < box.width * box.height; i += 1) {
     const sourceAlpha = channels === 4 ? src[i * channels + 3] : 255;
+
+    if (sourceAlpha > 128) visible += 1;
+
     // Only fully opaque pixels are covered by the guarantee; edge pixels are
     // anti-aliased against the scene by design.
     if (sourceAlpha < 255) continue;
@@ -258,5 +279,19 @@ export async function verifyProductPreserved(params: {
     }
   }
 
-  return { preserved: mismatches === 0, checkedPixels: checked, mismatches };
+  const coverage = visible > 0 ? checked / visible : 0;
+
+  // A cutout whose alpha never quite reaches 255 — a soft confidence mask, for
+  // example — makes this check vacuous: it compares almost nothing and still
+  // reports success. Saying "preserved" then would be a false guarantee, so
+  // the result is reported as not preserved and flagged.
+  const vacuous = visible > 0 && coverage < MIN_COVERAGE;
+
+  return {
+    preserved: mismatches === 0 && !vacuous,
+    checkedPixels: checked,
+    mismatches,
+    coverage,
+    vacuous,
+  };
 }

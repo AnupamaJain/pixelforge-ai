@@ -99,6 +99,31 @@ async function main() {
   );
   check("a meaningful number of pixels was checked", result.checkedPixels > 10000, `checked=${result.checkedPixels}`);
 
+  console.log("\n== Guarantee strength ==");
+  // A cutout whose alpha never reaches 255 makes verification vacuous: it
+  // still reports success while checking almost nothing. This caught a real
+  // regression where a soft confidence mask reduced the check from ~156,000
+  // pixels to 1,831.
+  const softCutout = await sharp(cutout)
+    .ensureAlpha()
+    .linear([1, 1, 1, 0.9], [0, 0, 0, 0])
+    .png()
+    .toBuffer();
+  const softComposite = await compositeProduct({ scene, cutout: softCutout, width: W, height: H });
+  const softCheck = await verifyProductPreserved({
+    composite: softComposite, cutout: softCutout, width: W, height: H,
+  });
+  check(
+    "a soft-alpha cutout is flagged vacuous, not passed",
+    softCheck.vacuous && !softCheck.preserved,
+    `coverage=${softCheck.coverage.toFixed(3)} preserved=${softCheck.preserved}`,
+  );
+  check(
+    "a hard-alpha cutout reports full coverage",
+    result.coverage > 0.9,
+    `coverage=${result.coverage.toFixed(3)}`,
+  );
+
   console.log("\n== Negative control (must be detected) ==");
   // Tint the composite; verification has to notice.
   const tampered = await sharp(composite).modulate({ saturation: 1.4 }).png().toBuffer();

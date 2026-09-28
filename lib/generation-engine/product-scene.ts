@@ -128,6 +128,10 @@ export async function generateProductScene(
       console.error("[product-scene] pixel verification failed", {
         checkedPixels: check.checkedPixels,
         mismatches: check.mismatches,
+        coverage: check.coverage,
+        // A vacuous result means segmentation produced a soft mask, not that
+        // the product was altered. Different cause, same refusal to ship.
+        vacuous: check.vacuous,
       });
     }
 
