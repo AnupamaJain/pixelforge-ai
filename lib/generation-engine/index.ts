@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cloudflareProvider } from "@/providers/cloudflare";
 import { hostedProvider } from "@/providers/hosted";
 import { invokeAIProvider } from "@/providers/invokeai";
 import { localProvider } from "@/providers/local";
@@ -25,6 +26,8 @@ export {
 } from "./composite";
 
 const PROVIDERS: Record<string, ImageGenerationProvider> = {
+  // Free tier: 10,000 Workers AI neurons/day, no card required.
+  cloudflare: cloudflareProvider,
   hosted: hostedProvider,
   invokeai: invokeAIProvider,
   // Placeholder imagery only, and self-guarded against production. Exists so

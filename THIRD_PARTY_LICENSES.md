@@ -202,6 +202,31 @@ and drifts. **No competitor is named, and none may be added.** Naming a company
 beside output you fabricated on their behalf invites both a trademark claim and
 a comparative-advertising complaint.
 
+## 3f. Cloudflare Workers AI and local segmentation
+
+**Cloudflare Workers AI** (`IMAGE_PROVIDER=cloudflare`) is the free-tier
+generation path: 10,000 Neurons per day at no charge, no card. The models it
+serves carry their own licences — FLUX Schnell is Apache-2.0, SDXL is
+CreativeML Open RAIL++-M (see §2), SD 1.5 inpainting is CreativeML Open RAIL-M.
+Cloudflare's terms govern the service; the weight licences still govern your
+use of the output.
+
+**Local background removal.** Workers AI has no segmentation model, so
+`providers/cloudflare/segment.ts` runs one locally through
+`@huggingface/transformers` (Apache-2.0).
+
+> ⚠️ **The model default matters commercially.** BriaAI's **RMBG-1.4 and
+> RMBG-2.0 are non-commercial** — commercial use requires an agreement with
+> BRIA. They are the most common models reached for in this space, and using
+> one in a paid product is a licence breach.
+>
+> The default here is **BiRefNet**, whose original weights are **MIT** and safe
+> to charge for. If you override `CLOUDFLARE_SEGMENT_MODEL`, check the new
+> model's **weight** licence, not just its code licence.
+
+This is the same class of trap as the NVIDIA PiD weights in §2: permissive code
+wrapped around restricted weights.
+
 ## 4. Application dependencies
 
 All are permissively licensed (MIT unless noted):
@@ -222,6 +247,9 @@ All are permissively licensed (MIT unless noted):
 | `server-only` | MIT |
 | `remotion` (dev only) | Remotion License — see 3d |
 | `hyperframes` (dev only) | Apache-2.0 — see 3e |
+| `@huggingface/transformers` | Apache-2.0 — see 3f |
+| `three` | MIT |
+| `pg` (dev only) | MIT |
 
 Inter (the UI typeface) is licensed under the SIL Open Font License 1.1 and is
 loaded from Google Fonts.

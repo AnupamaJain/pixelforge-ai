@@ -140,15 +140,10 @@ export function BillingView({
           role="status"
           className="mb-5 rounded-[--radius-md] border border-warning/30 bg-warning/5 p-4 text-sm text-fg-muted"
         >
-          <strong className="text-fg">Billing isn&apos;t configured.</strong> Set{" "}
-          <code className="rounded bg-bg-muted px-1 py-0.5 text-xs">
-            STRIPE_SECRET_KEY
-          </code>{" "}
-          and{" "}
-          <code className="rounded bg-bg-muted px-1 py-0.5 text-xs">
-            STRIPE_PRICE_ID
-          </code>{" "}
-          to enable upgrades. See the README for setup steps.
+          <strong className="text-fg">Self-serve upgrades aren&apos;t live yet.</strong>{" "}
+          Your plan, credits and usage below are all accurate — only the payment
+          step is unavailable. Get in touch and we&apos;ll move you onto a plan
+          manually in the meantime.
         </div>
       ) : null}
 

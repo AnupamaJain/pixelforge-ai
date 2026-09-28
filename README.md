@@ -377,6 +377,40 @@ inserts), create the two buckets manually in **Storage → New bucket**, leave
 
 ## 9. AI provider setup
 
+### Mode D — Cloudflare Workers AI (free, recommended to start)
+
+```bash
+IMAGE_PROVIDER=cloudflare
+CLOUDFLARE_ACCOUNT_ID=...
+CLOUDFLARE_API_TOKEN=...
+```
+
+Workers AI includes **10,000 Neurons per day at no charge** on both the Free
+and Paid plans, with **no credit card required**. FLUX Schnell costs ~4.8
+neurons per 512×512 tile, so a 1024×1024 image is ~19 neurons — roughly **500
+free images a day**. That is enough to develop against and to serve early
+customers.
+
+Get credentials at [dash.cloudflare.com](https://dash.cloudflare.com) → Workers
+& Pages (account ID is in the URL), then My Profile → API Tokens → Workers AI.
+
+**Two honest trade-offs against the paid provider:**
+
+| | Cloudflare (free) | Replicate (paid) |
+|---|---|---|
+| Text-to-image | FLUX Schnell / SDXL | SDXL |
+| Image-to-image | ✅ | ✅ |
+| Product scenes | ✅ (segmentation runs locally) | ✅ |
+| Upscaling | **Lanczos resample**, not generative | Real-ESRGAN super-resolution |
+| Daily limit | ~500 images | Pay per image |
+
+Workers AI has no super-resolution model, so upscaling is a high-quality
+resample. `capabilities` reports that honestly rather than calling it AI
+upscaling.
+
+Background removal runs locally on CPU via transformers.js — no key, no cost.
+The first run downloads ~200MB of weights and caches them.
+
 ### Mode C — development preview (no key, no GPU)
 
 The fastest way to see the whole thing work:
@@ -399,7 +433,7 @@ DEV_PROVIDER_LATENCY_MS=350   # simulate engine latency
 DEV_PROVIDER_FAIL_RATE=0.5    # half of runs fail, to watch refunds work
 ```
 
-### Mode A — hosted (recommended to start)
+### Mode A — hosted (Replicate, paid)
 
 No GPU needed. Get a token from
 [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens):

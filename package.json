@@ -28,9 +28,11 @@
     "ads:all": "npm run ads:cost-shock && npm run ads:pov-fail && npm run ads:three-second",
     "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
     "verify:live": "node --env-file=.env.local scripts/verify-live.mjs",
-    "test:shopify": "tsx --conditions=react-server scripts/verify-shopify.ts"
+    "test:shopify": "tsx --conditions=react-server scripts/verify-shopify.ts",
+    "set-plan": "node --env-file=.env.local scripts/set-plan.mjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
     "@stripe/stripe-js": "^5.5.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
